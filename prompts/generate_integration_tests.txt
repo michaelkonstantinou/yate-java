@@ -1,0 +1,1 @@
+Please generate the tests using %%TEST_FRAMEWORK%%. Avoid using Mockito (unless it is absolutely necessary). Return only the code

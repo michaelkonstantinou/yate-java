@@ -1,0 +1,1 @@
+Please identify all the possible tests with metamorphic relations for the given class. Your last line should be "Total number of tests: X" (Where X place the number of tests needed)

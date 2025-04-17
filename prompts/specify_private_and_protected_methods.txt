@@ -1,0 +1,1 @@
+Keep in mind that this class has some methods that are private or protected, and they should be invoked through another method.

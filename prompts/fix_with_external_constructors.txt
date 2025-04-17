@@ -1,0 +1,6 @@
+In addition, I noticed that the class uses some classes/objects that belong to the repository, but I haven't provided them to you
+Below, I list the additional objects and their constructors. These should be helpful to fix the errors I got before.
+
+%%CONTENT%%
+
+Please fix the tests accordingly and return the new test class. Respond only with the code of the test class.

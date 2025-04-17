@@ -1,0 +1,2 @@
+The tests continue to throw errors. Here is the output of an error log after doing static analysis
+

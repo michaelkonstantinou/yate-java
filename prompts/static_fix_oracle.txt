@@ -1,0 +1,7 @@
+The following line of code is used in a %%LANG%% test that is written in %%TEST_FRAMEWORK%%.
+
+%%ERROR_CODE_LINE%%
+
+However, when I execute the test, I receive the following error. Can you fix it so the test will pass? Please respond only with the code of the correct line.
+
+%%ERROR_LOG%%

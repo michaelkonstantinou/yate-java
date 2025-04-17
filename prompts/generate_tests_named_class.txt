@@ -1,0 +1,1 @@
+Please generate the tests using %%TEST_FRAMEWORK%%. Return only the code of the generated class. The name of the generated class should be "%%CLASS_NAME%%"

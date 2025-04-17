@@ -1,0 +1,7 @@
+The following is a test class written in %%TEST_FRAMEWORK%% to test a certain class.
+
+%%CLASS_CONTENT%%
+
+I want to make a modification to test %%TEST_METHOD%%. I want to change line %%LINE_NUMBER%% (%%LINE_CODE%%) so it asserts that an exception %%EXCEPTION_TYPE%% is thrown.
+
+Please make the change and return only the new line %%LINE_NUMBER%% code

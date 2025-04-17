@@ -1,0 +1,1 @@
+The following is a class that is missing unit tests for the method %%METHOD_NAME%%. Please identify how many tests are needed for method %%METHOD_NAME%% to achieve 100% coverage. Your last line should be "Total number of tests: X" (Where X place the number of tests needed)

@@ -1,0 +1,11 @@
+%%CLASS_CONTENT%%
+
+The previous given class, is written in %%LANG%% to test a specific class under test.
+
+Below are the errors thrown by the tests that are wrong.
+Please, examine the errors, find the tests that trigger the errors and remove only the tests that cause the error.
+DO NOT attempt to fix the class. Remove only the failing errors.
+
+Please respond only with the code of the new test class.
+
+%%ERROR_LOG%%

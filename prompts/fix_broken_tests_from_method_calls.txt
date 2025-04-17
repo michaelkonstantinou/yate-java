@@ -1,0 +1,8 @@
+The generated tests contain errors. If it helps, the class makes calls to methods of other classes. Specifically:
+
+%%METHOD_CALLS%%
+
+Here is the implementation for each of the aforementioned methods:
+
+%%METHOD_IMPLEMENTATIONS%%
+Please regenerate the tests based on the new given information

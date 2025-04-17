@@ -1,0 +1,5 @@
+Given the following class:
+
+%%CLASS_CONTENT%%
+
+Can you find whether we could create any tests that contain metamorphic relations?

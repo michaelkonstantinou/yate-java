@@ -1,0 +1,7 @@
+%%CLASS_CONTENT%%
+
+The given class, is written in %%LANG%% to test a specific class under test.
+
+Below, are the tests that are invalid. Please remove them from the code. Return only the code without the following tests
+
+Tests to remove: %%TESTS_TO_REMOVE%%
