@@ -22,7 +22,6 @@ public class PromptService {
      */
     public static void initialize() throws IOException {
         prompts = new HashMap<>();
-
         Path folderPath = Paths.get(ConfigYate.getString("DIR_PROMPTS"));
 
         if (!Files.exists(folderPath)) {

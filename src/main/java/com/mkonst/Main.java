@@ -1,9 +1,12 @@
 package com.mkonst;
 
 import com.mkonst.config.ConfigYate;
+import com.mkonst.models.ChatOpenAIModel;
 import com.mkonst.services.PromptService;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
@@ -17,5 +20,11 @@ public class Main {
         initializeServices();
 
         System.out.println(PromptService.get("system"));
+
+        ChatOpenAIModel aimodel = new ChatOpenAIModel(null);
+        List<String> prompts = new ArrayList<String>();
+        prompts.add("Hello ChatGPT!");
+        aimodel.ask(prompts, PromptService.get("system"));
+
     }
 }
