@@ -1,6 +1,6 @@
 package com.mkonst.analysis
 
-abstract class ClassContainer(className: String, bodyContent: String? = null) {
+abstract class ClassContainer(val className: String, bodyContent: String? = null) {
 
     /**
      * Returns the complete content of the Class
@@ -8,4 +8,7 @@ abstract class ClassContainer(className: String, bodyContent: String? = null) {
      */
     abstract fun getContent(): String
 
+    abstract fun getPrivateMethods(): MutableList<String>
+
+    abstract fun getProtectedMethods(): MutableList<String>
 }

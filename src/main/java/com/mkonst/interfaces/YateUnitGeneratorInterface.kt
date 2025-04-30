@@ -4,9 +4,9 @@ import com.mkonst.analysis.ClassContainer
 
 interface YateUnitGeneratorInterface {
 
-    fun generate_for_class(cutContainer: ClassContainer)
+    fun generateForClass(cutContainer: ClassContainer)
 
-    fun generate_for_constructors(cutContainer: ClassContainer)
+    fun generateForConstructors(cutContainer: ClassContainer)
 
-    fun generate_for_method(cutContainer: ClassContainer, methodName: String)
+    fun generateForMethod(cutContainer: ClassContainer, methodName: String)
 }

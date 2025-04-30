@@ -6,4 +6,12 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
     override fun getContent(): String {
         TODO("Not yet implemented")
     }
+
+    override fun getPrivateMethods(): MutableList<String> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getProtectedMethods(): MutableList<String> {
+        TODO("Not yet implemented")
+    }
 }

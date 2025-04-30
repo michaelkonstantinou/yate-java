@@ -24,7 +24,8 @@ public class Main {
         ChatOpenAIModel aimodel = new ChatOpenAIModel(null);
         List<String> prompts = new ArrayList<String>();
         prompts.add("Hello ChatGPT!");
-        aimodel.ask(prompts, PromptService.get("system"));
-
+        prompts.add("Can you write tests in kotlin?");
+        System.out.println(aimodel.ask(prompts, PromptService.get("system"), null));
+        aimodel.closeConnection();
     }
 }
