@@ -4,14 +4,16 @@ import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
+import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
 import com.mkonst.types.CodeResponse
 import kotlinx.coroutines.runBlocking
 
-class ChatOpenAIModel(model: String?) {
+class ChatOpenAIModel(model: String? = null) {
     private lateinit var model: String
     private var nrRequests: Int = 0
     private var client: OpenAI
@@ -24,12 +26,14 @@ class ChatOpenAIModel(model: String?) {
         if (model !== null && model.contains("deepseek")) {
             this.client = OpenAI(
                     token = ConfigYate.getString("DEEPSEEK_API_KEY"),
-                    host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL"))
+                    host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL")),
+                    logging = LoggingConfig(LogLevel.None)
             )
         } else {
             this.client = OpenAI(
                     token = ConfigYate.getString("GPT_API_KEY"),
-                    organization = ConfigYate.getString("GPT_ORGANIZATION")
+                    organization = ConfigYate.getString("GPT_ORGANIZATION"),
+                    logging = LoggingConfig(LogLevel.None)
             )
         }
     }

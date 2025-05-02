@@ -1,22 +1,39 @@
 package com.mkonst.components
 
 import com.mkonst.analysis.ClassContainer
+import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.interfaces.YateUnitGeneratorInterface
+import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.PromptService
-import java.util.HashMap
+import com.mkonst.types.ClassPathsContainer
+import com.mkonst.types.CodeResponse
+import com.mkonst.types.YateResponse
 
-class YateUnitGenerator: YateUnitGeneratorInterface {
-    override fun generateForClass(cutContainer: ClassContainer) {
+class YateUnitGenerator(private var repositoryPath: String) : YateUnitGeneratorInterface {
+    private var model: ChatOpenAIModel = ChatOpenAIModel();
+
+    override fun generateForClass(cutContainer: ClassContainer): YateResponse {
         val systemPrompt: String = PromptService.get("system")
         val generationPrompts: MutableList<String> = getPromptsForGeneration(cutContainer, "class")
+        val response: CodeResponse = model.ask(generationPrompts, systemPrompt)
 
+        // Prepare a new ClassContainer for the generated test class
+        val testContainer = JavaClassContainer(cutContainer.className + "Test", response.codeContent)
+        testContainer.body.packageName = cutContainer.body.packageName
+        testContainer.appendImports(cutContainer.body.imports)
+
+        // Find that paths of the class under test and the generated test class
+        testContainer.setPathsFromCut(cutContainer)
+
+        return YateResponse(testContainer, response.conversation)
     }
 
-    override fun generateForConstructors(cutContainer: ClassContainer) {
+    override fun generateForConstructors(cutContainer: ClassContainer): YateResponse {
         TODO("Not yet implemented")
     }
 
-    override fun generateForMethod(cutContainer: ClassContainer, methodName: String) {
+    override fun generateForMethod(cutContainer: ClassContainer, methodName: String): YateResponse {
         TODO("Not yet implemented")
     }
 
@@ -31,7 +48,7 @@ class YateUnitGenerator: YateUnitGeneratorInterface {
 
         when (testLevel) {
             "class" ->  {
-                promptIdentifyTests = PromptService.get("identify_tests") + "\n\n" + cutContainer.getContent()
+                promptIdentifyTests = PromptService.get("identify_tests") + "\n\n" + cutContainer.getCompleteContent()
                 promptGenerateTests = PromptService.get("generate_tests")
                 prompts.add(promptIdentifyTests)
 
@@ -43,7 +60,7 @@ class YateUnitGenerator: YateUnitGeneratorInterface {
             }
             "constructor" ->  {
                 val testClassName: String = cutContainer.className + "ConstructorsTest"
-                promptIdentifyTests = PromptService.get("identify_tests_constructors") + "\n\n" + cutContainer.getContent()
+                promptIdentifyTests = PromptService.get("identify_tests_constructors") + "\n\n" + cutContainer.getCompleteContent()
                 prompts.add(promptIdentifyTests)
                 promptGenerateTests = PromptService.get("generate_tests_named_class", hashMapOf("CLASS_NAME" to testClassName))
             }
@@ -53,7 +70,7 @@ class YateUnitGenerator: YateUnitGeneratorInterface {
                 }
 
                 val testClassName: String = cutContainer.className + "_" + mut + "_Test"
-                promptIdentifyTests = PromptService.get("identify_tests_method", hashMapOf("METHOD_NAME" to mut)) + "\n\n" + cutContainer.getContent()
+                promptIdentifyTests = PromptService.get("identify_tests_method", hashMapOf("METHOD_NAME" to mut)) + "\n\n" + cutContainer.getCompleteContent()
                 prompts.add(promptIdentifyTests)
                 promptGenerateTests = PromptService.get("generate_tests_named_class", hashMapOf("CLASS_NAME" to testClassName))
             }
@@ -88,5 +105,9 @@ class YateUnitGenerator: YateUnitGeneratorInterface {
         }
 
         return null
+    }
+
+    override fun closeConnection() {
+        this.model.closeConnection()
     }
 }

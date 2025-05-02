@@ -2,7 +2,9 @@ package com.mkonst;
 
 import com.mkonst.config.ConfigYate;
 import com.mkonst.models.ChatOpenAIModel;
+import com.mkonst.runners.YateJavaRunner;
 import com.mkonst.services.PromptService;
+import com.mkonst.types.TestLevel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,13 +21,17 @@ public class Main {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
-        System.out.println(PromptService.get("system"));
+        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, false, false);
+        runner.generateTestsForClass("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", TestLevel.CLASS);
+        runner.close();
+//        ChatOpenAIModel aimodel = new ChatOpenAIModel(null);
+//        List<String> prompts = new ArrayList<String>();
+//        prompts.add("Hello ChatGPT!");
+//        prompts.add("Can you write tests in kotlin?");
+//        System.out.println(aimodel.ask(prompts, PromptService.get("system"), null));
+//        aimodel.closeConnection();
 
-        ChatOpenAIModel aimodel = new ChatOpenAIModel(null);
-        List<String> prompts = new ArrayList<String>();
-        prompts.add("Hello ChatGPT!");
-        prompts.add("Can you write tests in kotlin?");
-        System.out.println(aimodel.ask(prompts, PromptService.get("system"), null));
-        aimodel.closeConnection();
+
     }
 }

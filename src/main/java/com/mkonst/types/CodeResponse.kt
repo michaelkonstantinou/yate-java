@@ -5,9 +5,9 @@ import com.mkonst.config.ConfigYate
 import java.util.regex.Pattern
 
 class CodeResponse(content: String?, conversation: MutableList<ChatMessage>, isCompiling: Boolean = false) {
-    private var codeContent: String? = null
-    private var conversation: MutableList<ChatMessage>
-    private var isCompiling: Boolean
+    var codeContent: String? = null
+    var conversation: MutableList<ChatMessage>
+    var isCompiling: Boolean
 
     init {
         this.codeContent = if (content !== null) extractCodeFromResponse(content) else null
