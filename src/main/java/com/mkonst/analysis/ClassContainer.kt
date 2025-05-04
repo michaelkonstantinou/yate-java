@@ -26,7 +26,30 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
 
     abstract fun appendImports(importsToAppend: MutableList<String>)
 
+    abstract fun removeImports(importsToRemove: MutableList<String>)
+
     abstract fun convertRawContentToStructure(): ClassBody
+
+    /**
+     * Returns the package + class_name (aka QualifyingName).
+     * If method_name is provided, the method_name will be appended as a suffix
+     */
+    fun getQualifiedName(methodName: String? = null): String
+    {
+        var name = ""
+
+        if (body.packageName != null) {
+            name += "$body.packageName."
+        }
+
+        name += className
+
+        if (methodName != null) {
+            name += ";$methodName"
+        }
+
+        return name
+    }
 
     fun toTestFile() {
         if (this.paths.testClass === null) {

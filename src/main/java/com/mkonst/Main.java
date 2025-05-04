@@ -22,7 +22,7 @@ public class Main {
         initializeServices();
 
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, false, false);
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, false, "com.binance.connector");
         runner.generateTestsForClass("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", TestLevel.CLASS);
         runner.close();
 //        ChatOpenAIModel aimodel = new ChatOpenAIModel(null);

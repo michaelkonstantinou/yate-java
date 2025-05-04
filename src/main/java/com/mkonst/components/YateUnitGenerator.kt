@@ -2,6 +2,7 @@ package com.mkonst.components
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.interfaces.YateUnitGeneratorInterface
 import com.mkonst.models.ChatOpenAIModel
@@ -13,6 +14,9 @@ import com.mkonst.types.YateResponse
 class YateUnitGenerator(private var repositoryPath: String) : YateUnitGeneratorInterface {
     private var model: ChatOpenAIModel = ChatOpenAIModel();
 
+    /**
+     * Generates the Unit Test cases at a class-level. It requires a ClassContainer instance of the class under test
+     */
     override fun generateForClass(cutContainer: ClassContainer): YateResponse {
         val systemPrompt: String = PromptService.get("system")
         val generationPrompts: MutableList<String> = getPromptsForGeneration(cutContainer, "class")
@@ -35,6 +39,17 @@ class YateUnitGenerator(private var repositoryPath: String) : YateUnitGeneratorI
 
     override fun generateForMethod(cutContainer: ClassContainer, methodName: String): YateResponse {
         TODO("Not yet implemented")
+    }
+
+    /**
+     * Uses the JavaImportsAnalyzer and searches for import statements that may be missing.
+     * If such statements are found, the method will append them to the ClassContainer of the YateResponse object
+     */
+    fun appendSuggestImports(response: YateResponse): YateResponse {
+        val suggestedImportStatements = JavaImportsAnalyzer.getSuggestedImports(repositoryPath, response.testClassContainer.getQualifiedName())
+        response.testClassContainer.appendImports(suggestedImportStatements);
+
+        return response
     }
 
     /**
