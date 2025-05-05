@@ -17,6 +17,10 @@ object YateJavaUtils {
                 .replace("${cutContainer.className}.java", "${testClassContainer.className}.java")
     }
 
+    fun getTestClassDirectoryPath(classPath: String): String {
+        return classPath.replace("src/main", "src/test")
+    }
+
     /**
      * Checks if a given Java class exists given its package name.
      */

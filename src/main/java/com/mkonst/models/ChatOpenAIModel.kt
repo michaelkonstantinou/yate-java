@@ -4,6 +4,7 @@ import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.LoggingConfig
@@ -11,7 +12,9 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
 import com.mkonst.types.CodeResponse
+import io.ktor.http.HttpHeaders.Timeout
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.seconds
 
 class ChatOpenAIModel(model: String? = null) {
     private lateinit var model: String
@@ -27,13 +30,15 @@ class ChatOpenAIModel(model: String? = null) {
             this.client = OpenAI(
                     token = ConfigYate.getString("DEEPSEEK_API_KEY"),
                     host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL")),
-                    logging = LoggingConfig(LogLevel.None)
+                    logging = LoggingConfig(LogLevel.None),
+                    timeout = Timeout(socket = 60.seconds),
             )
         } else {
             this.client = OpenAI(
                     token = ConfigYate.getString("GPT_API_KEY"),
                     organization = ConfigYate.getString("GPT_ORGANIZATION"),
-                    logging = LoggingConfig(LogLevel.None)
+                    logging = LoggingConfig(LogLevel.None),
+                    timeout = Timeout(socket = 60.seconds),
             )
         }
     }

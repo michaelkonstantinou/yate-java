@@ -1,20 +1,17 @@
 package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
-import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.components.YateUnitTestFixer
 import com.mkonst.helpers.YateConsole
-import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
-import kotlinx.coroutines.Job
 
 class YateJavaRunner(
         val repositoryPath: String,
         val includeOracleFixing: Boolean = false,
         val packageName: String = ""
-) {
+): YateAbstractRunner(lang = "java") {
     val yateGenerator: YateUnitGenerator = YateUnitGenerator(repositoryPath)
     val yateTestFixer: YateUnitTestFixer = YateUnitTestFixer()
 
@@ -22,37 +19,24 @@ class YateJavaRunner(
      * Generates unit tests regarding a given class. Depending on the test-level, the method will generate tests
      * for the whole class, for the constructors, for the methods or for a combination of the aforementioned
      */
-    fun generateTestsForClass(classPath: String, testLevel: TestLevel = TestLevel.CLASS) {
+    override fun generateTestsForClass(cutContainer: ClassContainer): YateResponse {
+        YateConsole.debug("Using YateUnitGenerator to generate the test cases for the given class")
 
-        // Create a ClassContainer for the original class under test
-        val cutContainer: ClassContainer = JavaClassContainer.createFromFile(classPath)
-        cutContainer.paths.cut = classPath
-
-        // Depending on the selected test level, generate a new test class (Saved in YateResponse)
-        if (testLevel.equals(TestLevel.CLASS)) {
-            YateConsole.debug("Using YateUnitGenerator to generate the test cases for the given class")
-            val response: YateResponse = yateGenerator.generateForClass(cutContainer)
-
-            response.testClassContainer.toTestFile()
-
-            fixTestClassFromResponse(cutContainer, response)
-        }
-
-
-//        println(cutContainer.className)
-//        println(cutContainer.paths)
-//        yateGenerator.generateForClass()
-
+        return yateGenerator.generateForClass(cutContainer)
     }
 
-    fun fixTestClassFromResponse(cutContainer: ClassContainer, response: YateResponse) {
+    override fun fixOraclesInRepository() {
+        TODO("Not yet implemented")
+    }
+
+    override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse) {
         YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
         yateGenerator.appendSuggestImports(response)
         removeInvalidImports(response)
         response.testClassContainer.toTestFile()
     }
 
-    fun close() {
+    override fun close() {
         yateGenerator.closeConnection()
         yateTestFixer.closeConnection()
     }

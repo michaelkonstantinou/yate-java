@@ -14,11 +14,18 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
         @JvmStatic
         fun createFromFile(classPath: String): ClassContainer {
             val className = YateIO.getClassNameFromPath(classPath)
-            val outputFolder = YateIO.getFolderFromPath(classPath)
             val classContent = YateIO.readFile(classPath)
 
             val classContainer = JavaClassContainer(className, classContent)
-            classContainer.paths = ClassPathsContainer(outputDirectory = outputFolder)
+
+            // Check whether the class reflects a Test class or a regular class by checking its name and append its path
+            if (className.contains("Test") && classPath.contains("test")) {
+                val outputFolder = YateIO.getFolderFromPath(classPath)
+                classContainer.paths = ClassPathsContainer(outputDirectory = outputFolder, testClass = classPath)
+            } else {
+                val outputFolder = YateJavaUtils.getTestClassDirectoryPath(classPath)
+                classContainer.paths = ClassPathsContainer(outputDirectory = outputFolder, cut = classPath)
+            }
 
             return classContainer
         }
