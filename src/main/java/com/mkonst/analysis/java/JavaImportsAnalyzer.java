@@ -209,6 +209,7 @@ public class JavaImportsAnalyzer {
                         if (ref.getPackage() != null && !ref.getPackage().getQualifiedName().startsWith("org.") && !ref.getPackage().getQualifiedName().startsWith("com.") && !ref.getPackage().getQualifiedName().startsWith("com.")) {
                             missingImportsWithoutPackage.add(ref.getQualifiedName().split("\\.")[0]);
                         }
+
                         else if (ref.getPackage() != null && !isPrimitive(ref.getQualifiedName()) && !ref.getPackage().getQualifiedName().equals(classPackage)) {
                             // Excludes primitive types and types from the same package
 

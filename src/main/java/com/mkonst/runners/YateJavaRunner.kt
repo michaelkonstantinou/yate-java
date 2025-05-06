@@ -5,6 +5,7 @@ import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.components.YateUnitTestFixer
 import com.mkonst.config.ConfigYate
+import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.types.YateResponse
@@ -12,12 +13,12 @@ import java.io.File
 
 class YateJavaRunner(
         val repositoryPath: String,
-        val includeOracleFixing: Boolean = false,
-        val packageName: String = ""
+        val includeOracleFixing: Boolean = false
 ): YateAbstractRunner(lang = "java") {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator(repositoryPath)
     private var yateTestFixer: YateUnitTestFixer
     private var dependencyTool: String
+    private var packageName: String
 
     init {
         // Identify whether a pom.xml file is present
@@ -27,6 +28,7 @@ class YateJavaRunner(
         println("The given repository is using $dependencyTool")
 
         yateTestFixer = YateUnitTestFixer(repositoryPath, dependencyTool)
+        packageName = YateCodeUtils.getRootPackage(repositoryPath)
     }
 
     /**
