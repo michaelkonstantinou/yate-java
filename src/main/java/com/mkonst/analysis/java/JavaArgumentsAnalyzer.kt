@@ -18,6 +18,10 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
         model = launcher.model
     }
 
+    /**
+     * Analyzes the repository and the usages this class makes. It generates a new log (as String) that holds
+     * information regarding the constructor signatures of other objects the class uses.
+     */
     fun getClassesInArgumentsLog(cut: String): String? {
         val resultsLog: StringBuilder = StringBuilder()
 
@@ -25,7 +29,7 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
         val relevantClasses: MutableSet<String> = mutableSetOf()
 
         val type = getClassTypeInstance(cut)
-        if (type is CtClass<*>) {
+        if (type !== null && type is CtClass<*>) {
 
             // Extract relevant classes from constructors
             for (constructor in type.constructors) {
@@ -56,7 +60,7 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
         return if (resultsLog.isEmpty()) null else resultsLog.toString()
     }
 
-    private fun getClassTypeInstance(qualifiedName: String): CtType<*> {
+    private fun getClassTypeInstance(qualifiedName: String): CtType<*>? {
         return model.allTypes.stream()
                 .filter { t: CtType<*> -> t.qualifiedName == qualifiedName }
                 .findFirst()
@@ -74,18 +78,26 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
         for (relevantClass in relevantClasses) {
             val relevantClassType = getClassTypeInstance(relevantClass)
 
+            if (relevantClassType === null) {
+                continue
+            }
+
             if (relevantClassType is CtClass<*>) {
-                log.append("Object ${relevantClassType.getQualifiedName()} can be instantiated with one of the following constructors (or mocked if the types are not primitive)\n")
+                log.append("\nObject ${relevantClassType.getQualifiedName()} can be instantiated with one of the following constructors (or mocked if the types are not primitive)\n")
 
                 // Extract relevant classes from constructors
                 for (constructor in relevantClassType.constructors) {
                     log.append(constructor.signature).append(constructor.body).append("\n")
                 }
             } else if (relevantClassType.isInterface) {
-                log.append("${relevantClassType.qualifiedName} is an interface and the following classes implement it\n")
+                log.append("\n${relevantClassType.qualifiedName} is an interface and the following classes implement it\n")
 
                 // Find all the class implementations of the interfaces and repeat the process for it
                 val classImplementations = getInterfaceImplementations(relevantClassType.qualifiedName)
+                for (classImpl: String in classImplementations) {
+                    log.append(" - ").append(classImpl).append("\n")
+                }
+
                 log.append(getConstructorImplementationsLog(classImplementations))
             }
         }
@@ -107,7 +119,6 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
                 // Check if the class implements the target interface
                 for (ref in clazz.superInterfaces) {
                     if (ref.qualifiedName == qualifiedName) {
-                        println("  - " + clazz.qualifiedName)
                         classImplementations.add(clazz.qualifiedName)
                     }
                 }

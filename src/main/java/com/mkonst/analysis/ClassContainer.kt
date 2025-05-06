@@ -39,7 +39,7 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
         var name = ""
 
         if (body.packageName != null) {
-            name += "$body.packageName."
+            name += "${body.packageName}."
         }
 
         name += className

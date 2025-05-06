@@ -4,6 +4,8 @@ import com.aallam.openai.api.chat.ChatMessage
 import com.github.javaparser.symbolsolver.resolution.typeinference.bounds.FalseBound
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.analysis.java.JavaArgumentsAnalyzer
+import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.interfaces.YateUnitTestFixerInterface
 import com.mkonst.models.ChatOpenAIModel
@@ -12,13 +14,24 @@ import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 import com.openai.errors.BadRequestException
 
-class YateUnitTestFixer(private var repositoryPath: String, private var dependencyTool: String): YateUnitTestFixerInterface {
+class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String): YateUnitTestFixerInterface {
     private var model: ChatOpenAIModel = ChatOpenAIModel();
+    private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
 
     override fun closeConnection() {
         model.closeConnection()
     }
 
+    /**
+     * Runs the tests and stores its output into an error log. If the log is not empty, the method
+     * uses the LLM to fix the tests that do not compile.
+     *
+     * The method returns the new ClassContainer instance, the history of the LLM conversation and whether
+     * there have been any changes (=the log was not empty)
+     *
+     * The flag include_cut_code determines whether the prompt should include the current test implementation.
+     * If this method is called subsequently then it might be wise to turn it off for optimization.
+     */
     fun fixTestsFromErrorLog(response: YateResponse, includeClassCodeInPrompt: Boolean = true): YateResponse {
         val errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool)
 
@@ -34,6 +47,29 @@ class YateUnitTestFixer(private var repositoryPath: String, private var dependen
         val promptVars = hashMapOf("CLASS_CONTENT" to response.testClassContainer.getCompleteContent(), "ERRORS" to errors)
         val promptInstruction: String = if (includeClassCodeInPrompt) "fix_errors" else "fix_errors_no_class_code"
         val prompt: String = PromptService.get(promptInstruction, promptVars)
+
+        return generateNewTestClass(mutableListOf(prompt), response)
+    }
+
+    /**
+     * The method uses the code static analysis to find whether the test class uses other non-primitive objects that
+     * belong to the repository, yet are unknown to the model. It finds and provides to the model their constructors
+     * and asks the model to fix the tests
+     */
+    fun fixUsingExternalConstructors(cutQualifiedName: String, response: YateResponse): YateResponse {
+        val suggestions: String? = argumentsAnalyzer.getClassesInArgumentsLog(cutQualifiedName)
+
+        // If suggestions are not found, then this procedure ends here without any changes to the test class
+        if (suggestions === null) {
+            YateConsole.debug("No suggestions found for external object construction")
+            response.hasChanges = false
+
+            return response
+        }
+
+        // Prepare a prompt that will use the suggestions found, and regenerate the test class container
+        val promptVars = hashMapOf("CONTENT" to suggestions)
+        val prompt = PromptService.get("fix_with_external_constructors", promptVars)
 
         return generateNewTestClass(mutableListOf(prompt), response)
     }

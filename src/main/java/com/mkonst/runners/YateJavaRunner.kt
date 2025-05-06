@@ -27,8 +27,8 @@ class YateJavaRunner(
         dependencyTool = if (pomFile.exists() && pomFile.isFile) "maven" else "gradle"
         println("The given repository is using $dependencyTool")
 
-        yateTestFixer = YateUnitTestFixer(repositoryPath, dependencyTool)
         packageName = YateCodeUtils.getRootPackage(repositoryPath)
+        yateTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
     }
 
     /**
@@ -61,6 +61,9 @@ class YateJavaRunner(
             }
         }
 
+        // Fix using external constructors
+        yateTestFixer.fixUsingExternalConstructors(cutContainer.getQualifiedName(), response)
+
         response.save()
     }
 
@@ -86,5 +89,12 @@ class YateJavaRunner(
         }
 
         return false
+    }
+
+    /**
+     * Returns whether the repository contains any compilation errors when the test suite is run
+     */
+    private fun isCompiling(): Boolean {
+        return YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool) === null
     }
 }
