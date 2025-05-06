@@ -54,7 +54,7 @@ public class PromptService {
 
         // Iterating all variables and replacing them in the prompt
         for (Map.Entry<String, String> entry : variables.entrySet()) {
-            content = content.replace(entry.getKey(), entry.getValue());
+            content = content.replace("%%" + entry.getKey() + "%%", entry.getValue());
         }
 
         return content;

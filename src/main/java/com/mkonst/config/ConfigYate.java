@@ -18,4 +18,8 @@ public class ConfigYate {
     public static String getString(String name) {
         return properties.getProperty(name);
     }
+
+    public static int getInteger(String name) {
+        return Integer.parseInt(properties.getProperty(name));
+    }
 }

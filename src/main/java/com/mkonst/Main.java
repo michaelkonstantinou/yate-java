@@ -23,7 +23,8 @@ public class Main {
 
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
         YateJavaRunner runner = new YateJavaRunner(repositoryPath, false, "com.binance.connector");
-        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", TestLevel.CLASS);
+//        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", TestLevel.CLASS);
+        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
         runner.close();
 //        ChatOpenAIModel aimodel = new ChatOpenAIModel(null);
 //        List<String> prompts = new ArrayList<String>();

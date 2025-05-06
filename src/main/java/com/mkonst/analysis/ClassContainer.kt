@@ -45,7 +45,7 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
         name += className
 
         if (methodName != null) {
-            name += ";$methodName"
+            name += "#$methodName"
         }
 
         return name

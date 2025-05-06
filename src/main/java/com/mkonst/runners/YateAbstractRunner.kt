@@ -25,6 +25,22 @@ abstract class YateAbstractRunner(val lang: String = "java") {
             fixGeneratedTestClass(cutContainer, response)
         }
     }
+
+    fun fix(classPath: String, testClassPath: String) {
+        val testContainer: ClassContainer
+        val cutContainer: ClassContainer
+        if (lang.lowercase() == "java") {
+            testContainer = JavaClassContainer.createFromFile(testClassPath)
+            cutContainer = JavaClassContainer.createFromFile(classPath)
+        } else {
+            // todo()
+            testContainer = JavaClassContainer.createFromFile(testClassPath)
+            cutContainer = JavaClassContainer.createFromFile(classPath)
+        }
+
+        val response = YateResponse(testContainer, mutableListOf())
+        fixGeneratedTestClass(cutContainer, response)
+    }
     abstract fun generateTestsForClass(cutContainer: ClassContainer): YateResponse
 
     abstract fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse)

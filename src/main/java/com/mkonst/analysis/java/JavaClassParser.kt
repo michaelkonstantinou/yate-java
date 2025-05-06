@@ -66,6 +66,12 @@ class JavaClassParser: CodeClassParserInterface {
                 .orElse(false)
     }
 
+    /**
+     * The method attempts to return only the part of the class that contains the class declaration and implementation
+     * In other words, package name, import statements and common faulty statements are removed
+     *
+     * For test methods, it attempts to fix any method signatures that do not follow a typical unit test format
+     */
     private fun getCleanBodyContent(fullCode: String, packageName: String?, imports: MutableList<String>): String {
         var cleanContent = ""
 
