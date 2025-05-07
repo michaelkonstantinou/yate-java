@@ -45,26 +45,36 @@ class YateJavaRunner(
         TODO("Not yet implemented")
     }
 
-    override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse) {
+    override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
         YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
         yateGenerator.appendSuggestImports(response)
         removeInvalidImports(response)
         response.testClassContainer.toTestFile()
 
-        // Execute tests and fix errors from error log
-        for (i in 1..ConfigYate.getInteger("MAX_FIX_ITERATIONS")) {
-            yateTestFixer.fixTestsFromErrorLog(response, i == 1)
-
-            if (response.hasChanges) {
-                println("Test has changes. Saving results")
-                response.testClassContainer.toTestFile()
-            }
+        fixFromErrorLog(response)
+        if (isCompiling()) {
+            return response
         }
 
-        // Fix using external constructors
+        // Fix by checking external constructor invocations and wrong method usages
+        YateConsole.debug("Analyzing calls to other objects")
         yateTestFixer.fixUsingExternalConstructors(cutContainer.getQualifiedName(), response)
+        response.testClassContainer.toTestFile()
 
-        response.save()
+        // Analyze code for wrong method/mock usages and fix accordingly
+        fixByFindingWrongInvocations(response)
+        if (isCompiling()) {
+            return response
+        }
+
+        // Use the MCG to provide more content to the LLM regarding its usage
+        fixUsingExternalMethodContent(cutContainer, response)
+        if (isCompiling()) {
+            return response
+        }
+
+        println("Code is still not compiling")
+        return response
     }
 
     override fun close() {
@@ -83,6 +93,7 @@ class YateJavaRunner(
         val invalidImports: MutableList<String> = JavaImportsAnalyzer.getInvalidPackageImports(repositoryPath, packageName, response.testClassContainer.body.imports)
 
         if (invalidImports.size > 0) {
+            YateConsole.debug("The following imports are invalid and are being removed: ${invalidImports.joinToString()}")
             response.testClassContainer.removeImports(invalidImports)
 
             return true
@@ -96,5 +107,70 @@ class YateJavaRunner(
      */
     private fun isCompiling(): Boolean {
         return YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool) === null
+    }
+
+    private fun fixFromErrorLog(response: YateResponse): YateResponse {
+        for (i in 1..ConfigYate.getInteger("MAX_FIX_ITERATIONS")) {
+            YateConsole.debug("Running tests and attempt to fix them using the error log")
+            yateTestFixer.fixTestsFromErrorLog(response, i == 1)
+
+            if (response.hasChanges) {
+                println("Test has changes. Saving results")
+                removeInvalidImports(response)
+                response.testClassContainer.toTestFile()
+            } else {
+                return response
+            }
+        }
+
+        return response
+    }
+
+    /**
+     * Uses YateTestFixer (LLM-based) to analyze and fix any method invocations
+     * that are being used in tests incorrectly.
+     *
+     * Returns the new ClassContainer, the LLM conversation and a boolean indicating
+     * whether more compilation errors exist
+     */
+    private fun fixByFindingWrongInvocations(response: YateResponse): YateResponse {
+        for (i in 1..ConfigYate.getInteger("MAX_FIX_WRONG_INVOCATIONS")) {
+            yateTestFixer.fixWrongMethodInvocations(response)
+
+            if (response.hasChanges) {
+                response.testClassContainer.toTestFile()
+                println("Done! Running for compilation errors")
+
+                fixFromErrorLog(response)
+            } else {
+                println("No wrong method invocations detected")
+            }
+        }
+
+        return response
+    }
+
+    /**
+     * Uses YateTestFixer (LLM-based) to analyze and fix wrong tests, by providing more
+     * content from relevant classes-methods.
+     *
+     * Returns the new ClassContainer, the LLM conversation and a boolean indicating
+     * whether more compilation errors exist
+     */
+    private fun fixUsingExternalMethodContent(cutContainer: ClassContainer, response: YateResponse): YateResponse {
+        for (i in 1..ConfigYate.getInteger("MAX_FIX_USING_MORE_CONTENT")) {
+            yateTestFixer.fixUsingExternalMethods(cutContainer, response)
+
+            if (response.hasChanges) {
+                response.testClassContainer.toTestFile()
+                println("Done! Running for compilation errors")
+
+                fixFromErrorLog(response)
+            } else {
+                println("No external method calls found")
+            }
+        }
+
+        return response
     }
 }

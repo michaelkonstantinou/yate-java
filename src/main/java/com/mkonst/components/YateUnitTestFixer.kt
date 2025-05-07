@@ -4,12 +4,17 @@ import com.aallam.openai.api.chat.ChatMessage
 import com.github.javaparser.symbolsolver.resolution.typeinference.bounds.FalseBound
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.analysis.MethodCallGraph
 import com.mkonst.analysis.java.JavaArgumentsAnalyzer
+import com.mkonst.analysis.java.JavaInvocationsAnalyzer
+import com.mkonst.analysis.java.JavaMethodProvider
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.interfaces.YateUnitTestFixerInterface
 import com.mkonst.models.ChatOpenAIModel
+import com.mkonst.services.MethodCallGraphService
 import com.mkonst.services.PromptService
+import com.mkonst.types.ClassMethod
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 import com.openai.errors.BadRequestException
@@ -17,6 +22,15 @@ import com.openai.errors.BadRequestException
 class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String): YateUnitTestFixerInterface {
     private var model: ChatOpenAIModel = ChatOpenAIModel();
     private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
+    private val invocationsAnalyzer: JavaInvocationsAnalyzer = JavaInvocationsAnalyzer(repositoryPath)
+    private val methodProvider: JavaMethodProvider = JavaMethodProvider(repositoryPath)
+    private val methodCallGraph: MethodCallGraph? = MethodCallGraphService.getNewMethodCallGraph(repositoryPath, packageName)
+
+    init {
+        if (methodCallGraph === null || methodCallGraph.size() <= 0) {
+            throw Exception("Method Call Graph cannot be null or empty")
+        }
+    }
 
     override fun closeConnection() {
         model.closeConnection()
@@ -70,6 +84,69 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
         // Prepare a prompt that will use the suggestions found, and regenerate the test class container
         val promptVars = hashMapOf("CONTENT" to suggestions)
         val prompt = PromptService.get("fix_with_external_constructors", promptVars)
+
+        return generateNewTestClass(mutableListOf(prompt), response)
+    }
+
+    /**
+     * The method used the LLM to fix the wrong tests, using as input a log of the wrong method invocations
+     * used in the test. Initially it analyzes the class, and stores the log output.
+     * If the log is empty (no wrong invocations found), the method returns the current implementation
+     */
+    fun fixWrongMethodInvocations(response: YateResponse): YateResponse {
+        val wrongMethodUsages: String? = invocationsAnalyzer.getAllWrongUsagesLog(response.testClassContainer.getQualifiedName())
+        if (wrongMethodUsages === null) {
+            response.hasChanges = false
+
+            return response
+        }
+
+        // Prepare a prompt that will include the wrong method invocations and ask the LLM to fix them
+        val prompt: String = PromptService.get("fix_wrong_method_invocations") + wrongMethodUsages
+
+        return generateNewTestClass(mutableListOf(prompt), response)
+    }
+
+    /**
+     * Uses static analysis to find methods that are being used by the class under test and find potential
+     * code snippets that are useful to the LLM to fix the generated tests
+     */
+    fun fixUsingExternalMethods(cutContainer: ClassContainer, response: YateResponse): YateResponse {
+        val instructionMethodCalls: StringBuilder = StringBuilder()
+        val instructionImplementations: StringBuilder = StringBuilder()
+
+        val calledMethods: MutableList<ClassMethod> = mutableListOf()
+        for (methodName in cutContainer.body.methods.values) {
+            val methodCalledMethods: MutableList<ClassMethod>? = methodCallGraph?.getMethodCallsFrom(ClassMethod(cutContainer.getQualifiedName(methodName)))
+            if (methodCalledMethods !== null && methodCalledMethods.size > 0) {
+                calledMethods.addAll(methodCalledMethods)
+                instructionMethodCalls
+                        .append("Method $methodName calls the following methods:")
+                        .append(methodCalledMethods.joinToString(", ") { it.methodName })
+                        .append("\n")
+            }
+        }
+
+        // If there are no external calls, then this prompt is pointless
+        if (calledMethods.isEmpty()) {
+            response.hasChanges = false
+
+            return response
+        }
+
+        // Remove duplicated values
+        val calledMethodsSet = calledMethods.toSet()
+        for (classMethod: ClassMethod in calledMethodsSet) {
+            val methodBody: String? = methodProvider.getMethodBody(classMethod)
+            if (methodBody !== null) {
+                instructionImplementations.append("// From Class: ${classMethod.className}\n$methodBody\n\n")
+            }
+        }
+
+        val promptVars = hashMapOf(
+                "METHOD_CALLS" to instructionMethodCalls.toString(),
+                "METHOD_IMPLEMENTATIONS" to instructionImplementations.toString())
+        val prompt = PromptService.get("fix_broken_tests_from_method_calls", promptVars)
 
         return generateNewTestClass(mutableListOf(prompt), response)
     }

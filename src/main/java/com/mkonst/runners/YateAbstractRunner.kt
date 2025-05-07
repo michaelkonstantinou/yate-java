@@ -23,6 +23,7 @@ abstract class YateAbstractRunner(val lang: String = "java") {
             response.testClassContainer.toTestFile()
 
             fixGeneratedTestClass(cutContainer, response)
+            response.save()
         }
     }
 
@@ -41,9 +42,10 @@ abstract class YateAbstractRunner(val lang: String = "java") {
         val response = YateResponse(testContainer, mutableListOf())
         fixGeneratedTestClass(cutContainer, response)
     }
+
     abstract fun generateTestsForClass(cutContainer: ClassContainer): YateResponse
 
-    abstract fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse)
+    abstract fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse
 
     abstract fun fixOraclesInRepository()
 

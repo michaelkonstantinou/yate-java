@@ -96,4 +96,8 @@ public class MethodCallGraph {
 
         return output.toString();
     }
+
+    public int size() {
+        return graph.vertexSet().size();
+    }
 }
