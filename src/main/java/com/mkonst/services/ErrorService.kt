@@ -3,9 +3,12 @@ package com.mkonst.services
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
-import com.github.javaparser.ast.stmt.BlockStmt
 import com.mkonst.helpers.YateJavaExecution
+import com.mkonst.types.OracleError
 import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Element
+import kotlin.io.path.Path
 
 class ErrorService(private val repositoryPath: String) {
 
@@ -36,6 +39,46 @@ class ErrorService(private val repositoryPath: String) {
         }
 
         return testsByTestClass
+    }
+
+    fun findExceptionErrorsFromReport(qualifiedClassName: String? = null): List<OracleError> {
+        val reportXmlPath = Path(repositoryPath, "target/surefire-reports/TEST-${qualifiedClassName}.xml").toString()
+        val exceptionErrors = mutableListOf<OracleError>()
+        val factory = DocumentBuilderFactory.newInstance()
+        val builder = factory.newDocumentBuilder()
+        val doc = builder.parse(File(reportXmlPath))
+        val testCases = doc.getElementsByTagName("testcase")
+
+        val regex = Regex("""\((\w+)\.java:(\d+)\)""")
+
+        for (i in 0 until testCases.length) {
+            val elTestCase = testCases.item(i) as Element
+            val testMethod = elTestCase.getAttribute("name")
+            val testClass = elTestCase.getAttribute("classname")
+
+            val errorNodes = elTestCase.getElementsByTagName("error")
+            if (qualifiedClassName == null || testClass == qualifiedClassName) {
+                if (errorNodes.length > 0) {
+                    val errorElement = errorNodes.item(0) as Element
+                    val errorText = errorElement.textContent ?: continue
+
+                    val match = regex.find(errorText)
+                    if (match != null) {
+                        val lineNumber = match.groupValues[2].toIntOrNull() ?: continue
+                        val exceptionType = errorElement.getAttribute("type")
+                        exceptionErrors.add(
+                                OracleError(
+                                        exceptionType = exceptionType,
+                                        testMethodName = testMethod,
+                                        lineNumber = lineNumber
+                                )
+                        )
+                    }
+                }
+            }
+        }
+
+        return exceptionErrors
     }
 
     fun extractFullTestMethods(file: File, testMethods: Set<String>): Map<String, String> {

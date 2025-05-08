@@ -76,10 +76,12 @@ class JavaClassParser: CodeClassParserInterface {
         var cleanContent = ""
 
         // 1. Remove package and import statements from class content
-        cleanContent = fullCode.replace("package $packageName;", "")
-        for (importStatement: String in imports) {
-            cleanContent = cleanContent.replace(importStatement, "")
-        }
+        val linesToRemove: MutableList<String> = mutableListOf("package $packageName;")
+        linesToRemove.addAll(imports)
+        cleanContent = fullCode
+                .lines()
+                .filterNot { line -> linesToRemove.any { filter -> line.contains(filter) } }
+                .joinToString("\n")
 
         // 2. Remove faulty import statements like: import .something;
         val patternIncorrectImport = Regex("""^\s*import\s+\.\w.*\n""", RegexOption.MULTILINE)

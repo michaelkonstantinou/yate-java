@@ -1,6 +1,7 @@
 package com.mkonst.helpers
 
 import com.github.javaparser.JavaParser
+import com.github.javaparser.ParseProblemException
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.analysis.ClassContainer
 import java.io.File
@@ -71,5 +72,65 @@ object YateJavaUtils {
 
         return compilationUnit.toString()
     }
+
+    /**
+     * Returns whether JavaParser can parse successfully the given method code
+     */
+    fun isMethodParsing(methodSource: String): Boolean {
+        // Wrap the method inside a dummy class to make it parseable
+        val wrappedSource = """
+        public class Dummy {
+            $methodSource
+        }
+    """.trimIndent()
+
+        return try {
+            val result = JavaParser().parse(wrappedSource)
+            result.isSuccessful
+        } catch (e: ParseProblemException) {
+            false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Returns whether JavaParser can parse successfully the given method code
+     */
+    fun isClassParsing(classSource: String): Boolean {
+        return try {
+            val result = JavaParser().parse(classSource)
+            result.isSuccessful
+        } catch (e: ParseProblemException) {
+            false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun invertExceptionOracle(exceptionOracle: String): String? {
+        // Multiline assertThrows block pattern
+        val multilinePattern = Regex(
+                """assertThrows\s*\(\s*[\w.]+\.class\s*,\s*\(\s*\)\s*->\s*\{"""
+        )
+
+        if (multilinePattern.containsMatchIn(exceptionOracle)) {
+            return "assertDoesNotThrow(() -> {"
+        }
+
+        // Inline assertThrows pattern
+        val inlinePattern = Regex(
+                """assertThrows\(\s*[\w.]+\.class,\s*\(\s*\)\s*->\s*(.+?)\);"""
+        )
+
+        val match = inlinePattern.find(exceptionOracle)
+        if (match != null) {
+            val executionPart = match.groupValues[1].trim()
+            return "assertDoesNotThrow(() -> $executionPart);"
+        }
+
+        return null
+    }
+
 
 }

@@ -32,6 +32,13 @@ object YateCodeUtils {
         return findCommonRootPackage(packageNames)
     }
 
+    @JvmStatic
+    fun replaceLineInList(lines: MutableList<String>, lineNumber: Int, oldValue: String, newValue: String): MutableList<String> {
+        lines[lineNumber] = lines[lineNumber].replace(oldValue, newValue)
+
+        return lines
+    }
+
     private fun findCommonRootPackage(packageNames: Set<String>): String {
         if (packageNames.isEmpty()) return ""
 

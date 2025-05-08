@@ -2,6 +2,7 @@ package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.java.JavaImportsAnalyzer
+import com.mkonst.components.YateOracleFixer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.components.YateUnitTestFixer
 import com.mkonst.config.ConfigYate
@@ -15,10 +16,11 @@ import java.io.File
 
 class YateJavaRunner(
         val repositoryPath: String,
-        val includeOracleFixing: Boolean = false
+        val includeOracleFixing: Boolean = true
 ): YateAbstractRunner(lang = "java") {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator(repositoryPath)
     private var yateTestFixer: YateUnitTestFixer
+    private var yateOracleFixer: YateOracleFixer
     private var dependencyTool: String
     private var packageName: String
     private val errorService: ErrorService = ErrorService(repositoryPath)
@@ -32,6 +34,7 @@ class YateJavaRunner(
 
         packageName = YateCodeUtils.getRootPackage(repositoryPath)
         yateTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
+        yateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
     }
 
     /**
@@ -44,8 +47,24 @@ class YateJavaRunner(
         return yateGenerator.generateForClass(cutContainer)
     }
 
-    override fun fixOraclesInRepository(response: YateResponse): YateResponse {
-        TODO("Not yet implemented")
+    override fun fixOraclesInTestClass(response: YateResponse): YateResponse {
+        if (!includeOracleFixing) {
+            return response
+        }
+
+        YateConsole.info("Fixing the oracles of non-passing tests")
+
+        // Output log: rule-based fixing
+        val (outputResponse, errorsFixed) = yateOracleFixer.fixUsingOutput(response)
+        YateConsole.info("$errorsFixed fixed using the output log and rules")
+        response.testClassContainer.toTestFile()
+        response.save()
+
+        // Output log: rule-based & llm exception oracle fixing
+
+        // LLM-based fixing
+
+        return response
     }
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
