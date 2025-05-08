@@ -1,7 +1,8 @@
 package com.mkonst.helpers
 
+import com.github.javaparser.JavaParser
+import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.analysis.ClassContainer
-import com.mkonst.analysis.JavaClassContainer
 import java.io.File
 
 object YateJavaUtils {
@@ -42,6 +43,33 @@ object YateJavaUtils {
 
         mainJavaPath = File(repository, "src/main")
         return File(mainJavaPath, packageName.replace(".", "/") + ".java").path
+    }
+
+    /**
+     *  Reads the context of the given class, and returns a new modified version with the given methods removed
+     */
+    fun removeMethodsInClass(classPath: String, methods: MutableSet<String>): String {
+        val file = File(classPath)
+        if (!file.exists()) {
+            throw Exception("Cannot remove methods from given class path: Class path does not exist ($classPath)")
+        }
+
+        val parser = JavaParser()
+        val result = parser.parse(file)
+
+        if (!result.result.isPresent) {
+            return file.readText()
+        }
+
+        val compilationUnit = result.result.get()
+
+        // Collect methods to remove (avoid modifying list while iterating)
+        val methodsToRemove = compilationUnit.findAll(MethodDeclaration::class.java)
+                .filter { it.nameAsString in methods }
+
+        methodsToRemove.forEach { it.remove() }
+
+        return compilationUnit.toString()
     }
 
 }

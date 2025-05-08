@@ -3,6 +3,7 @@ package com.mkonst.runners
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.helpers.YateConsole
+import com.mkonst.services.ErrorService
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 
@@ -23,6 +24,11 @@ abstract class YateAbstractRunner(val lang: String = "java") {
             response.testClassContainer.toTestFile()
 
             fixGeneratedTestClass(cutContainer, response)
+            response.testClassContainer.toTestFile()
+            response.save()
+
+            fixOraclesInRepository(response)
+            response.testClassContainer.toTestFile()
             response.save()
         }
     }
@@ -47,7 +53,7 @@ abstract class YateAbstractRunner(val lang: String = "java") {
 
     abstract fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse
 
-    abstract fun fixOraclesInRepository()
+    abstract fun fixOraclesInRepository(response: YateResponse): YateResponse
 
     abstract fun close()
 }

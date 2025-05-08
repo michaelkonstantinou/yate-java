@@ -7,27 +7,12 @@ import com.github.javaparser.ast.stmt.BlockStmt
 import com.mkonst.helpers.YateJavaExecution
 import java.io.File
 
-class ErrorService {
+class ErrorService(private val repositoryPath: String) {
 
-    fun removeMethods(file: File, testMethods: Set<String>): String {
-        val parser = JavaParser()
-        val result = parser.parse(file)
-
-        if (!result.result.isPresent) return file.readText()
-
-        val compilationUnit = result.result.get()
-
-        // Collect methods to remove (avoid modifying list while iterating)
-        val methodsToRemove = compilationUnit.findAll(MethodDeclaration::class.java)
-                .filter { it.nameAsString in testMethods }
-
-        methodsToRemove.forEach { it.remove() }
-
-        println(compilationUnit.toString())
-        return compilationUnit.toString()  // Returns the modified source as a string
-    }
-
-    fun findNonPassingTests(repositoryPath: String, dependencyTool: String): Map<String, MutableSet<String>> {
+    /**
+     * Runs the tests in the repository and returns a map with the non-passing tests for each test class
+     */
+    fun findNonPassingTests(dependencyTool: String): Map<String, MutableSet<String>> {
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
 
         // Step 1: Run tests and get errors

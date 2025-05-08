@@ -4,12 +4,15 @@ import com.mkonst.config.ConfigYate;
 import com.mkonst.helpers.YateCodeUtils;
 import com.mkonst.models.ChatOpenAIModel;
 import com.mkonst.runners.YateJavaRunner;
+import com.mkonst.services.ErrorService;
 import com.mkonst.services.PromptService;
 import com.mkonst.types.TestLevel;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class Main {
 
@@ -24,8 +27,8 @@ public class Main {
 
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
         YateJavaRunner runner = new YateJavaRunner(repositoryPath, false);
-//        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", TestLevel.CLASS);
-        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
+        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", TestLevel.CLASS);
+//        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
         runner.close();
 //        ChatOpenAIModel aimodel = new ChatOpenAIModel(null);
 //        List<String> prompts = new ArrayList<String>();

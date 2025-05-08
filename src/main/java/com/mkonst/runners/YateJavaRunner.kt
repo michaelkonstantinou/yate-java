@@ -8,6 +8,8 @@ import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
+import com.mkonst.helpers.YateJavaUtils
+import com.mkonst.services.ErrorService
 import com.mkonst.types.YateResponse
 import java.io.File
 
@@ -19,6 +21,7 @@ class YateJavaRunner(
     private var yateTestFixer: YateUnitTestFixer
     private var dependencyTool: String
     private var packageName: String
+    private val errorService: ErrorService = ErrorService(repositoryPath)
 
     init {
         // Identify whether a pom.xml file is present
@@ -41,7 +44,7 @@ class YateJavaRunner(
         return yateGenerator.generateForClass(cutContainer)
     }
 
-    override fun fixOraclesInRepository() {
+    override fun fixOraclesInRepository(response: YateResponse): YateResponse {
         TODO("Not yet implemented")
     }
 
@@ -73,7 +76,13 @@ class YateJavaRunner(
             return response
         }
 
-        println("Code is still not compiling")
+        println("Code is still not compiling. Removing non-compiling tests")
+        val nonPassingTests = errorService.findNonPassingTests(dependencyTool)
+        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
+        if (!classRelatedInvalidTests.isNullOrEmpty()) {
+            YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+        }
+
         return response
     }
 
