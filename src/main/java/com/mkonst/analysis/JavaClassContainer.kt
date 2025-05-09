@@ -118,6 +118,13 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
         return JavaClassParser().getBodyDecoded(this.bodyContent)
     }
 
+    override fun copy(): ClassContainer {
+        val newInstance: ClassContainer = JavaClassContainer(className, bodyContent)
+        newInstance.paths = this.paths.copy()
+
+        return newInstance
+    }
+
     fun setPathsFromCut(cutContainer: ClassContainer) {
         val testClassPath = YateJavaUtils.getTestClassPath(cutContainer, this)
         paths = ClassPathsContainer(cutContainer.paths.cut, testClassPath)

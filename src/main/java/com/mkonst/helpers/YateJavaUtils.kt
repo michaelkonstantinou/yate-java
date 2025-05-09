@@ -108,6 +108,10 @@ object YateJavaUtils {
         }
     }
 
+    /**
+     * Scans using regex the given exception oracle and returns an assertDoesNotThrow version of it
+     * In case the oracle could not be decoded as an exception oracle, the method returns null
+     */
     fun invertExceptionOracle(exceptionOracle: String): String? {
         // Multiline assertThrows block pattern
         val multilinePattern = Regex(
@@ -131,6 +135,27 @@ object YateJavaUtils {
 
         return null
     }
+
+    /**
+     * Parses the given statement and attempts to generate an exception oracle of the
+     * format: assertThrows(exception_class, () -> clean_statement);
+     *
+     * Returns null if the statement could not be decoded into a simple expression
+     */
+    fun createExceptionOracleFromStatement(statement: String, exceptionClass: String): String? {
+        // Capture format: <object> <variable> = <statement>;
+        val reEqualityStatement = Regex("""(\w+(<.*?>)?)\s+(\w+)\s*=\s*(.+);""")
+
+        val match = reEqualityStatement.find(statement)
+        return if (match != null) {
+            val cleanStatement = match.groupValues[4] // e.g., someMethodCall()
+
+            "assertThrows($exceptionClass, () -> $cleanStatement);"
+        } else {
+            null
+        }
+    }
+
 
 
 }

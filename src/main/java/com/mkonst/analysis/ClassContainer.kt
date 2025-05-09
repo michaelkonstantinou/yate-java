@@ -31,6 +31,12 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
     abstract fun convertRawContentToStructure(): ClassBody
 
     /**
+     * Creates a copy of the current instance.
+     * It is used to create a backup of the current class before attempting any changes on it
+     */
+    abstract fun copy(): ClassContainer
+
+    /**
      * Returns the package + class_name (aka QualifyingName).
      * If method_name is provided, the method_name will be appended as a suffix
      */

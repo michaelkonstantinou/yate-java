@@ -54,13 +54,19 @@ class YateJavaRunner(
 
         YateConsole.info("Fixing the oracles of non-passing tests")
 
-        // Output log: rule-based fixing
-        val (outputResponse, errorsFixed) = yateOracleFixer.fixUsingOutput(response)
-        YateConsole.info("$errorsFixed fixed using the output log and rules")
+        // Make sure that the current test file, is also the one that reflects the test container's content
         response.testClassContainer.toTestFile()
-        response.save()
+
+        // Output log: rule-based fixing
+        val errorsFixedFromLog = yateOracleFixer.fixUsingOutput(response)
+        YateConsole.info("$errorsFixedFromLog fixed using the output log and rules")
+        response.testClassContainer.toTestFile()
 
         // Output log: rule-based & llm exception oracle fixing
+        val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
+        YateConsole.info("$errorsFixedExceptions fixed using the output log and rules")
+        response.testClassContainer.toTestFile()
+        response.save()
 
         // LLM-based fixing
 
