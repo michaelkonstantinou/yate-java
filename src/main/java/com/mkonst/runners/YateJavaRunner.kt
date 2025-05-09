@@ -47,8 +47,18 @@ class YateJavaRunner(
         return yateGenerator.generateForClass(cutContainer)
     }
 
+    /**
+     * The method uses a 3-step solution to fix failing oracles, based on the execution trace
+     * Step 1: Attempts to fix oracles using a rule-based system
+     * Step 2: Attempts to generate missing exception oracles using a rule-based system or the LLM in case is difficult
+     * Step 3: Uses the LLM to fix failing oracles based on the error's context
+     *
+     * The method is executed only if the flag includeOracleFixing is present.
+     */
     override fun fixOraclesInTestClass(response: YateResponse): YateResponse {
         if (!includeOracleFixing) {
+            YateConsole.info("Oracle fixing is skipped because this feature is disabled")
+
             return response
         }
 
@@ -66,9 +76,12 @@ class YateJavaRunner(
         val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
         YateConsole.info("$errorsFixedExceptions fixed using the output log and rules")
         response.testClassContainer.toTestFile()
-        response.save()
 
         // LLM-based fixing
+        val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
+        YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
+        response.testClassContainer.toTestFile()
+        response.save()
 
         return response
     }
@@ -114,6 +127,7 @@ class YateJavaRunner(
     override fun close() {
         yateGenerator.closeConnection()
         yateTestFixer.closeConnection()
+        yateOracleFixer.closeConnection()
     }
 
     /**

@@ -10,6 +10,7 @@ import com.mkonst.services.ErrorService
 import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.OracleError
+import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
 
 class YateOracleFixer(private var repositoryPath: String,
@@ -17,7 +18,6 @@ class YateOracleFixer(private var repositoryPath: String,
 {
     private var model: ChatOpenAIModel = ChatOpenAIModel();
     private val errorService: ErrorService = ErrorService(repositoryPath)
-    private val promptFixOracle: String = PromptService.get("static_fix_oracle")
 
     /**
      * Executes the tests in the repository, reads the errors and attempts to fix the tests to make them pass.
@@ -114,6 +114,42 @@ class YateOracleFixer(private var repositoryPath: String,
         return nrErrorsFixed
     }
 
+    fun fixErrorsUsingModel(response: YateResponse): Int {
+        // Step 1: Execute tests and get errors
+        val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
+
+        // Early exit: If no errors are present then this procedure is pointless
+        if (errors === null) {
+            response.hasChanges = false
+
+            return 0
+        }
+
+        // Create a copy to allow reverting if needed
+        val codeLines = response.testClassContainer.getCompleteContent().lines().toMutableList()
+
+        // Scan for error-message patterns and fix lines that fall into them
+        var nrErrorsFixed: Int = 0
+        val errorLogs: List<TestErrorLog> = errorService.findErrorsFromReport(response.testClassContainer.getQualifiedName())
+        for (errorLog: TestErrorLog in errorLogs) {
+            val lineToChange = errorLog.lineNumber - 1
+            val codeLine = codeLines[lineToChange].trim()
+
+            // Prepare prompt for LLM
+            // Attempt to fix exception oracle using LLM
+            YateConsole.debug("Attempting to fix oracle in line $lineToChange: $codeLine")
+            val promptVars = hashMapOf("ERROR_CODE_LINE" to codeLine, "ERROR_LOG" to errorLog.content)
+            val prompt = PromptService.get("static_fix_oracle", promptVars)
+
+            replaceLineUsingModel(mutableListOf(prompt), codeLines, lineToChange, response)
+            if (response.hasChanges) {
+                nrErrorsFixed++
+            }
+        }
+
+        return nrErrorsFixed
+    }
+
     private fun fixLineUsingOutputLog(
             errorLogItem: OracleError,
             response: YateResponse
@@ -173,7 +209,6 @@ class YateOracleFixer(private var repositoryPath: String,
             YateConsole.error("LLM could not fix the error")
             response.hasChanges = false
         } else {
-            YateConsole.debug("Adding exception oracle using model in $lineToChange: ${modelResponse.codeContent} ")
             val newCodeLines = codeLines.toMutableList()
             newCodeLines[lineToChange] = modelResponse.codeContent!!
             appendNewContentFromLines(newCodeLines, response)
@@ -231,5 +266,7 @@ class YateOracleFixer(private var repositoryPath: String,
         return false
     }
 
-
+    fun closeConnection() {
+        this.model.closeConnection()
+    }
 }

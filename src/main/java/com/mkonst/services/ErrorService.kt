@@ -5,9 +5,11 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.types.OracleError
+import com.mkonst.types.TestErrorLog
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 import kotlin.io.path.Path
 
 class ErrorService(private val repositoryPath: String) {
@@ -41,6 +43,9 @@ class ErrorService(private val repositoryPath: String) {
         return testsByTestClass
     }
 
+    /**
+     * Scans a surefire report and returns a list of OracleError instances that occurred due to an exception thrown
+     */
     fun findExceptionErrorsFromReport(qualifiedClassName: String? = null): List<OracleError> {
         val reportXmlPath = Path(repositoryPath, "target/surefire-reports/TEST-${qualifiedClassName}.xml").toString()
         val exceptionErrors = mutableListOf<OracleError>()
@@ -48,8 +53,6 @@ class ErrorService(private val repositoryPath: String) {
         val builder = factory.newDocumentBuilder()
         val doc = builder.parse(File(reportXmlPath))
         val testCases = doc.getElementsByTagName("testcase")
-
-        val regex = Regex("""\((\w+)\.java:(\d+)\)""")
 
         for (i in 0 until testCases.length) {
             val elTestCase = testCases.item(i) as Element
@@ -61,10 +64,8 @@ class ErrorService(private val repositoryPath: String) {
                 if (errorNodes.length > 0) {
                     val errorElement = errorNodes.item(0) as Element
                     val errorText = errorElement.textContent ?: continue
-
-                    val match = regex.find(errorText)
-                    if (match != null) {
-                        val lineNumber = match.groupValues[2].toIntOrNull() ?: continue
+                    val lineNumber = getErrorLineNumber(errorText)
+                    if (lineNumber != null) {
                         val exceptionType = errorElement.getAttribute("type")
                         exceptionErrors.add(
                                 OracleError(
@@ -81,23 +82,71 @@ class ErrorService(private val repositoryPath: String) {
         return exceptionErrors
     }
 
-    fun extractFullTestMethods(file: File, testMethods: Set<String>): Map<String, String> {
-        val parser = JavaParser()
-        val result = parser.parse(file)
+    /**
+     * Iterates a surefire report and returns a list of TestErrorLog instances, each of them holding the information
+     * of an error thrown due to a failing test
+     */
+    fun findErrorsFromReport(qualifiedClassName: String? = null): List<TestErrorLog> {
+        val reportXmlPath = Path(repositoryPath, "target/surefire-reports/TEST-${qualifiedClassName}.xml").toString()
+        val errorMessages = mutableListOf<TestErrorLog>()
+        val factory = DocumentBuilderFactory.newInstance()
+        val builder = factory.newDocumentBuilder()
+        val doc = builder.parse(File(reportXmlPath))
+        val testCases = doc.getElementsByTagName("testcase")
 
-        if (!result.result.isPresent) return emptyMap()
+        for (i in 0 until testCases.length) {
+            val elTestCase = testCases.item(i) as Element
+            val testMethod = elTestCase.getAttribute("name")
+            val testClass = elTestCase.getAttribute("classname")
 
-        val compilationUnit: CompilationUnit = result.result.get()
-        val fullMethods = mutableMapOf<String, String>()
+            if (qualifiedClassName == null || testClass == qualifiedClassName) {
 
-        compilationUnit.findAll(MethodDeclaration::class.java).forEach { method ->
-            val methodName = method.nameAsString
-            if (methodName in testMethods) {
-                // Get full method declaration as written in source
-                fullMethods[methodName] = method.toString()
+                // Get first error/failure element from test case
+                val errorElement = getChildFailingElement(elTestCase)
+                if (errorElement !== null) {
+                    val errorText = errorElement.textContent ?: continue
+                    val lineNumber = getErrorLineNumber(errorText)
+
+                    // If the context contains an error line, then add the error to the list of errors to return
+                    if (lineNumber !== null) {
+                        errorMessages.add(
+                                TestErrorLog(
+                                        testMethodName = testMethod,
+                                        content = errorText,
+                                        type = errorElement.getAttribute("type"),
+                                        message = errorElement.getAttribute("message"),
+                                        lineNumber = lineNumber
+                                )
+                        )
+                    }
+                }
             }
         }
 
-        return fullMethods
+        return errorMessages
+    }
+
+    private fun getErrorLineNumber(errorContent: String): Int? {
+        val regex = Regex("""\(\w+\.java:(\d+)\)""")
+        val match = regex.find(errorContent)
+
+        return match?.groupValues?.get(1)?.toIntOrNull()
+    }
+
+
+    /**
+     * Returns the first element with the tag "Error" or "Failure". If none of the options exist, returns null
+     */
+    private fun getChildFailingElement(elTestCase: Element): Element? {
+        val errorNodes = elTestCase.getElementsByTagName("error")
+        if (errorNodes.length > 0) {
+            return errorNodes.item(0) as Element
+        }
+        val failureNodes = elTestCase.getElementsByTagName("failure")
+        if (failureNodes.length > 0) {
+            return failureNodes.item(0) as Element
+        }
+
+        return null
     }
 }

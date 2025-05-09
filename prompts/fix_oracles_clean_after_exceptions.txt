@@ -1,4 +1,4 @@
-I need your help to clean up some code. In the following class I sometimes have code that is supposed to be executed after "assertThrows" statements. In each test, remove any lines after "assertThrows" statements.
+I need your help to clean up some code. In the following class I sometimes have code that is supposed to be executed after "assertThrows" statements. In each test, remove any lines after the first "assertThrows" statement.
 Return the complete code of the class. Respond only with code.
 
 %%CLASS_CONTENT%%
