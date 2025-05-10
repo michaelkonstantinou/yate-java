@@ -82,16 +82,11 @@ class YateUnitGenerator : YateUnitGeneratorInterface {
         return prompts
     }
 
-    fun getPromptForNonPublicMethod(cutContainer: ClassContainer): String? {
+    private fun getPromptForNonPublicMethod(cutContainer: ClassContainer): String? {
         var promptNonPublic: String = PromptService.get("specify_private_and_protected_methods")
 
         val privateMethods = cutContainer.getPrivateMethods()
         val protectedMethods = cutContainer.getProtectedMethods()
-
-//        if len(private_methods) > 0:
-//        prompt_specify_private_protected_methods += '\n\nPrivate methods: ' + ', '.join(private_methods)
-//        if len(protected_methods) > 0:
-//        prompt_specify_private_protected_methods += '\n\nProtected methods: ' + ', '.join(protected_methods)
 
         if (privateMethods.size > 0) {
             promptNonPublic += "\n\nPrivate methods: " + privateMethods.joinToString()

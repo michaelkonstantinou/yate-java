@@ -26,7 +26,9 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
 
     abstract fun appendImports(importsToAppend: MutableList<String>)
 
-    abstract fun removeImports(importsToRemove: MutableList<String>)
+    fun removeImports(importsToRemove: MutableList<String>) {
+        body.imports.removeAll(importsToRemove)
+    }
 
     abstract fun convertRawContentToStructure(): ClassBody
 

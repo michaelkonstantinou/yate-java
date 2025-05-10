@@ -106,10 +106,6 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
         }
     }
 
-    override fun removeImports(importsToRemove: MutableList<String>) {
-        TODO("Not yet implemented")
-    }
-
     override fun convertRawContentToStructure(): ClassBody {
         if (this.bodyContent === null) {
             return ClassBody()

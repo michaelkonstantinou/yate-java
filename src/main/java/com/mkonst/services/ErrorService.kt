@@ -17,11 +17,11 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonPassingTests(dependencyTool: String): Map<String, MutableSet<String>> {
+    fun findNonPassingTests(dependencyTool: String, includeCompilingTests: Boolean = true): Map<String, MutableSet<String>> {
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
 
         // Step 1: Run tests and get errors
-        val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
+        val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = includeCompilingTests)
         if (errors == null) {
             return emptyMap()
         }

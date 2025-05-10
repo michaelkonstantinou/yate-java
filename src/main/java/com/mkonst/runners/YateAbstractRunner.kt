@@ -2,10 +2,12 @@ package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.helpers.YateConsole
+import com.mkonst.helpers.YateIO
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 
-abstract class YateAbstractRunner(val lang: String = "java") {
+abstract class YateAbstractRunner(val lang: String = "java", private val outputDirectory: String? = null) {
 
     fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS) {
         val cutContainer: ClassContainer
@@ -28,6 +30,8 @@ abstract class YateAbstractRunner(val lang: String = "java") {
             fixOraclesInTestClass(response)
             response.testClassContainer.toTestFile()
             response.save()
+
+            moveGenerateFile(response)
         }
     }
 
@@ -67,4 +71,21 @@ abstract class YateAbstractRunner(val lang: String = "java") {
     abstract fun fixOraclesInTestClass(response: YateResponse): YateResponse
 
     abstract fun close()
+
+    /**
+     * If the runner was instantiated with an outputDirectory, then this method will move the generate test file,
+     * to the specified outputDirectory.
+     * If the given response object does not contain a valid test class path, the
+     * method will do nothing
+     */
+    private fun moveGenerateFile(response: YateResponse) {
+        val sourcePath: String? = response.testClassContainer.paths.testClass
+        if (outputDirectory !== null && sourcePath !== null) {
+            val newPath = YateIO.moveFileToDirectory(response.testClassContainer.paths.testClass!!, outputDirectory)
+
+            if (newPath !== null) {
+                YateConsole.info("Generated test file has been moved. New path: $newPath")
+            }
+        }
+    }
 }

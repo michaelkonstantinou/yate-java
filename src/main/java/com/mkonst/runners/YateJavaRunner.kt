@@ -16,8 +16,9 @@ import java.io.File
 
 class YateJavaRunner(
     val repositoryPath: String,
-    private val includeOracleFixing: Boolean = true
-): YateAbstractRunner(lang = "java") {
+    private val includeOracleFixing: Boolean = true,
+    private val outputDirectory: String? = null
+): YateAbstractRunner(lang = "java", outputDirectory = outputDirectory) {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
     private var yateOracleFixer: YateOracleFixer
@@ -78,12 +79,13 @@ class YateJavaRunner(
         val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
         YateConsole.info("$errorsFixedExceptions fixed using the output log and rules")
         response.testClassContainer.toTestFile()
+        removeNonCompilingTests(response)
 
         // LLM-based fixing
         val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
         YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
         response.testClassContainer.toTestFile()
-        response.save()
+        removeNonCompilingTests(response)
 
         return response
     }
@@ -117,11 +119,7 @@ class YateJavaRunner(
         }
 
         println("Code is still not compiling. Removing non-compiling tests")
-        val nonPassingTests = errorService.findNonPassingTests(dependencyTool)
-        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
-        if (!classRelatedInvalidTests.isNullOrEmpty()) {
-            YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
-        }
+        removeNonCompilingTests(response)
 
         return response
     }
@@ -233,5 +231,19 @@ class YateJavaRunner(
         }
 
         return response
+    }
+
+    /**
+     * Executes the tests and finds the ones that did not compile
+     * Based on the YateResponse's class, it will remove the tests that are relevant to the generated test class
+     *
+     * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
+     */
+    private fun removeNonCompilingTests(response: YateResponse) {
+        val nonPassingTests = errorService.findNonPassingTests(dependencyTool, false)
+        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
+        if (!classRelatedInvalidTests.isNullOrEmpty()) {
+            YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+        }
     }
 }
