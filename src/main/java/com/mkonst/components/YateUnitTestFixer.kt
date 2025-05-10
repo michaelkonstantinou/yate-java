@@ -24,10 +24,10 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
     private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
     private val invocationsAnalyzer: JavaInvocationsAnalyzer = JavaInvocationsAnalyzer(repositoryPath)
     private val methodProvider: JavaMethodProvider = JavaMethodProvider(repositoryPath)
-    private val methodCallGraph: MethodCallGraph? = MethodCallGraphService.getNewMethodCallGraph(repositoryPath, packageName)
+    private val methodCallGraph: MethodCallGraph = MethodCallGraphService.getNewMethodCallGraph(repositoryPath, packageName) ?: throw Exception("Method Call Graph cannot be null or empty")
 
     init {
-        if (methodCallGraph === null || methodCallGraph.size() <= 0) {
+        if (methodCallGraph.size() <= 0) {
             throw Exception("Method Call Graph cannot be null or empty")
         }
     }
@@ -117,8 +117,8 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
 
         val calledMethods: MutableList<ClassMethod> = mutableListOf()
         for (methodName in cutContainer.body.methods.values) {
-            val methodCalledMethods: MutableList<ClassMethod>? = methodCallGraph?.getMethodCallsFrom(ClassMethod(cutContainer.getQualifiedName(methodName)))
-            if (methodCalledMethods !== null && methodCalledMethods.size > 0) {
+            val methodCalledMethods: MutableList<ClassMethod> = methodCallGraph.getMethodCallsFrom(ClassMethod(cutContainer.getQualifiedName(methodName)))
+            if (methodCalledMethods.isNotEmpty()) {
                 calledMethods.addAll(methodCalledMethods)
                 instructionMethodCalls
                         .append("Method $methodName calls the following methods:")

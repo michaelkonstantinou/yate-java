@@ -1,49 +1,40 @@
-package com.mkonst.types;
+package com.mkonst.types
 
-public class ClassMethod {
+class ClassMethod {
+    var className: String
+        private set
+    var methodName: String
+        private set
 
-    private String className;
-    private String methodName;
-    public ClassMethod(String className, String methodName) {
-        this.className = className;
-        this.methodName = methodName;
+    constructor(className: String, methodName: String) {
+        this.className = className
+        this.methodName = methodName
     }
 
-    public ClassMethod(String classMethodQualifiedName) throws Exception {
-        String[] qualifiedNames = classMethodQualifiedName.split("#");
-        if (qualifiedNames.length != 2) {
-            throw new Exception("The invoked ClassMethod constructor requires a string of the format classQualifiedName#methodName");
+    constructor(classMethodQualifiedName: String) {
+        val qualifiedNames = classMethodQualifiedName.split("#".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        if (qualifiedNames.size != 2) {
+            throw Exception("The invoked ClassMethod constructor requires a string of the format classQualifiedName#methodName")
         }
 
-        this.className = qualifiedNames[0];
-        this.methodName = qualifiedNames[1];
+        this.className = qualifiedNames[0]
+        this.methodName = qualifiedNames[1]
     }
 
-    public String getClassName() {
-        return className;
+    override fun toString(): String {
+        return this.className + "#" + this.methodName
     }
 
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public String toString() {
-        return this.className + "#" + this.methodName;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof ClassMethod) {
-            ClassMethod cmToCompare = (ClassMethod) obj;
-            return cmToCompare.className.equals(this.className) && cmToCompare.methodName.equals(this.methodName);
+    override fun equals(other: Any?): Boolean {
+        if (other is ClassMethod) {
+            return (other.className == this.className) && other.methodName == this.methodName
         }
 
-        return false;
+        return false
     }
 
-    @Override
-    public int hashCode() {
-        return className.hashCode() + 31 * methodName.hashCode();
+    override fun hashCode(): Int {
+        return className.hashCode() + 31 * methodName.hashCode()
     }
 }
 
