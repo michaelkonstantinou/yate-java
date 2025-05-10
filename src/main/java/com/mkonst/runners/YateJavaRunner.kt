@@ -15,15 +15,16 @@ import com.mkonst.types.YateResponse
 import java.io.File
 
 class YateJavaRunner(
-        val repositoryPath: String,
-        val includeOracleFixing: Boolean = true
+    val repositoryPath: String,
+    private val includeOracleFixing: Boolean = true
 ): YateAbstractRunner(lang = "java") {
-    private val yateGenerator: YateUnitGenerator = YateUnitGenerator(repositoryPath)
+    private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
     private var yateOracleFixer: YateOracleFixer
     private var dependencyTool: String
     private var packageName: String
     private val errorService: ErrorService = ErrorService(repositoryPath)
+    private val importsAnalyzer: JavaImportsAnalyzer
 
     init {
         // Identify whether a pom.xml file is present
@@ -35,6 +36,7 @@ class YateJavaRunner(
         packageName = YateCodeUtils.getRootPackage(repositoryPath)
         yateTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
         yateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
+        importsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
     }
 
     /**
@@ -88,7 +90,7 @@ class YateJavaRunner(
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
         YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
-        yateGenerator.appendSuggestImports(response)
+        appendSuggestImports(response)
         removeInvalidImports(response)
         response.testClassContainer.toTestFile()
 
@@ -138,7 +140,7 @@ class YateJavaRunner(
      * Returns whether such import statements have been found
      */
     private fun removeInvalidImports(response: YateResponse): Boolean {
-        val invalidImports: MutableList<String> = JavaImportsAnalyzer.getInvalidPackageImports(repositoryPath, packageName, response.testClassContainer.body.imports)
+        val invalidImports: MutableList<String> = importsAnalyzer.getInvalidPackageImports(response.testClassContainer.body.imports)
 
         if (invalidImports.size > 0) {
             YateConsole.debug("The following imports are invalid and are being removed: ${invalidImports.joinToString()}")
@@ -148,6 +150,17 @@ class YateJavaRunner(
         }
 
         return false
+    }
+
+    /**
+     * Uses the JavaImportsAnalyzer and searches for import statements that may be missing.
+     * If such statements are found, the method will append them to the ClassContainer of the YateResponse object
+     */
+    private fun appendSuggestImports(response: YateResponse): YateResponse {
+        val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
+        response.testClassContainer.appendImports(suggestedImportStatements);
+
+        return response
     }
 
     /**

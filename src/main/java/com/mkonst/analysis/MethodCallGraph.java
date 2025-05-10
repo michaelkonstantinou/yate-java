@@ -21,9 +21,6 @@ public class MethodCallGraph {
      * Converts the given Strings into ClassMethod instances and appends a new edge. If the graph does not contain
      * the given methods are Vertices, new vertices will be generated
      *
-     * @param callerClassMethod
-     * @param calleeClassMethod
-     * @throws Exception
      */
     public void addEdge(String callerClassMethod, String calleeClassMethod) throws Exception {
         ClassMethod caller = new ClassMethod(callerClassMethod);
@@ -52,28 +49,6 @@ public class MethodCallGraph {
         // If Vertex/Node does not exist, catch the exception and return an empty list
         try {
             for (DefaultEdge edge : graph.outgoingEdgesOf(fromClassMethod)) {
-                methodCalls.add(graph.getEdgeTarget(edge));
-            }
-        } catch (IllegalArgumentException ex) {
-            // No methods calls found
-            return new ArrayList<>();
-        }
-
-        return methodCalls;
-    }
-
-    /**
-     * Returns a list of all method invocations made to a given ClassMethod instance
-     *
-     * @param fromClassMethod Represents the Edge's source
-     * @return All edge targets given fromClassMethod as an edge source
-     */
-    public List<ClassMethod> getMethodCallsTo(ClassMethod fromClassMethod) {
-        List<ClassMethod> methodCalls = new ArrayList<>();
-
-        // If Vertex/Node does not exist, catch the exception and return an empty list
-        try {
-            for (DefaultEdge edge : graph.incomingEdgesOf(fromClassMethod)) {
                 methodCalls.add(graph.getEdgeTarget(edge));
             }
         } catch (IllegalArgumentException ex) {

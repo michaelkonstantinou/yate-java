@@ -25,7 +25,7 @@ public class MethodCallGraphService {
 
         // Initialize a new Spoon code analysis model
         Launcher launcher = new Launcher();
-        launcher.addInputResource(repositoryPath + "src/main/java");
+        launcher.addInputResource(repositoryPath + "src/main");
         launcher.buildModel();
         CtModel model = launcher.getModel();
 

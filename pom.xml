@@ -8,10 +8,22 @@
     <artifactId>yate-java</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <name>YATE</name>
+    <description> Yet Another TEst generator. An LLM-based, content oriented test generation tool. A complete implementation in Kotlin and Java </description>
+    <url>https://github.com/michaelkonstantinou/yate-java</url>
+
+    <developers>
+        <developer>
+            <name>Michael Konstantinou</name>
+            <email>mkonst03@gmail.com</email>
+        </developer>
+    </developers>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.code.style>official</kotlin.code.style>
         <kotlin.version>1.9.23</kotlin.version>
     </properties>
 
@@ -85,6 +97,21 @@
             <groupId>com.github.javaparser</groupId>
             <artifactId>javaparser-symbol-solver-core</artifactId>
             <version>3.26.4</version>
+        </dependency>
+
+        <!-- Maven Plugin API -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.9.4</version>
+        </dependency>
+
+        <!-- Maven Plugin Annotations -->
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.15.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

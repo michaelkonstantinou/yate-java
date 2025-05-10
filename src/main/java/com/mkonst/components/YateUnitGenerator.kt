@@ -2,16 +2,13 @@ package com.mkonst.components
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
-import com.mkonst.analysis.java.JavaImportsAnalyzer
-import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.interfaces.YateUnitGeneratorInterface
 import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.PromptService
-import com.mkonst.types.ClassPathsContainer
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 
-class YateUnitGenerator(private var repositoryPath: String) : YateUnitGeneratorInterface {
+class YateUnitGenerator : YateUnitGeneratorInterface {
     private var model: ChatOpenAIModel = ChatOpenAIModel();
 
     /**
@@ -39,17 +36,6 @@ class YateUnitGenerator(private var repositoryPath: String) : YateUnitGeneratorI
 
     override fun generateForMethod(cutContainer: ClassContainer, methodName: String): YateResponse {
         TODO("Not yet implemented")
-    }
-
-    /**
-     * Uses the JavaImportsAnalyzer and searches for import statements that may be missing.
-     * If such statements are found, the method will append them to the ClassContainer of the YateResponse object
-     */
-    fun appendSuggestImports(response: YateResponse): YateResponse {
-        val suggestedImportStatements = JavaImportsAnalyzer.getSuggestedImports(repositoryPath, response.testClassContainer.getQualifiedName())
-        response.testClassContainer.appendImports(suggestedImportStatements);
-
-        return response
     }
 
     /**
