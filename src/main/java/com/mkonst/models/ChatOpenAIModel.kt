@@ -12,13 +12,12 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
 import com.mkonst.types.CodeResponse
-import io.ktor.http.HttpHeaders.Timeout
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 
 class ChatOpenAIModel(model: String? = null) {
+    var nrRequests: Int = 0
     private lateinit var model: String
-    private var nrRequests: Int = 0
     private var client: OpenAI
 
     init {
@@ -74,12 +73,6 @@ class ChatOpenAIModel(model: String? = null) {
         }
 
         return CodeResponse(answer, conversation)
-    }
-
-    fun getNrRequests(): Int = nrRequests
-
-    fun setNrRequests(value: Int) {
-        nrRequests = value
     }
 
     fun closeConnection() {

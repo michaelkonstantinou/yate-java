@@ -1,56 +1,54 @@
-package com.mkonst.services;
+package com.mkonst.services
 
-import com.mkonst.analysis.MethodCallGraph;
-import spoon.reflect.CtModel;
-import spoon.reflect.code.CtInvocation;
-import spoon.reflect.declaration.CtElement;
-import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.declaration.CtType;
-import spoon.Launcher;
+import com.mkonst.analysis.MethodCallGraph
+import spoon.Launcher
+import spoon.reflect.code.CtInvocation
+import spoon.reflect.declaration.CtElement
 
-public class MethodCallGraphService {
-
+object MethodCallGraphProvider {
     /**
      * The function is responsible for analyzing the given repository and generating
      * a new MethodCallGraph instance.
      * Throws an exception if an error occurred during the analysis
      */
-    public static MethodCallGraph getNewMethodCallGraph(String repositoryPath, String packageName) {
-        MethodCallGraph methodCallGraph = new MethodCallGraph();
+    fun getNewMethodCallGraph(repositoryPath: String, packageName: String?): MethodCallGraph {
+        var repositoryPath = repositoryPath
+        val methodCallGraph = MethodCallGraph()
 
         // Make sure repository path ends in a /
-        if (! repositoryPath.endsWith("/")) {
-            repositoryPath = repositoryPath + "/";
+        if (!repositoryPath.endsWith("/")) {
+            repositoryPath = "$repositoryPath/"
         }
 
         // Initialize a new Spoon code analysis model
-        Launcher launcher = new Launcher();
-        launcher.addInputResource(repositoryPath + "src/main");
-        launcher.buildModel();
-        CtModel model = launcher.getModel();
+        val launcher = Launcher()
+        launcher.addInputResource(repositoryPath + "src/main")
+        launcher.buildModel()
+        val model = launcher.model
 
         // Iterate all methods and find all method invocations
-        for (CtType<?> type : model.getAllTypes()) {
-            for (CtMethod<?> method : type.getMethods()) {
-                String caller = type.getQualifiedName() + "#" + method.getSimpleName();
+        for (type in model.allTypes) {
+            for (method in type.methods) {
+                val caller = type.qualifiedName + "#" + method.simpleName
 
                 // For each method invocation append a new edge to the MethodCallGraph instance
-                for (CtElement invocation : method.getElements(e -> e instanceof CtInvocation)) {
-                    CtInvocation<?> invokedInstance = (CtInvocation<?>) invocation;
+                for (invocation in method.getElements<CtElement> { e: CtElement? -> e is CtInvocation<*> }) {
+                    val invokedInstance = invocation as CtInvocation<*>
 
                     try {
-                        String calleePackageClass = invokedInstance.getExecutable().getDeclaringType().getQualifiedName();
+                        val calleePackageClass = invokedInstance.executable.declaringType.qualifiedName
 
                         // Filter only the classes that belong to the repository (exclude java generic libraries)
-                        if (calleePackageClass.contains(packageName)) {
-                            String callee = calleePackageClass + "#" + invokedInstance.getExecutable().getSimpleName();
-                            methodCallGraph.addEdge(caller, callee);
+                        if (calleePackageClass.contains(packageName!!)) {
+                            val callee = calleePackageClass + "#" + invokedInstance.executable.simpleName
+                            methodCallGraph.addEdge(caller, callee)
                         }
-                    } catch (Exception ignored) {}
+                    } catch (ignored: Exception) {
+                    }
                 }
             }
         }
 
-        return methodCallGraph;
+        return methodCallGraph
     }
 }

@@ -11,20 +11,10 @@ import spoon.reflect.declaration.CtParameter
 import java.util.stream.Collectors
 
 class JavaInvocationsAnalyzer(val repositoryPath: String) {
-    private var model: CtModel
-
-    init {
-        // Initialize Spoon
-        val launcher = Launcher()
-        launcher.addInputResource(repositoryPath + "src/main")
-        launcher.addInputResource(repositoryPath + "src/test")
-        launcher.buildModel()
-
-        // Get the Spoon model
-        model = launcher.model
-    }
+    private lateinit var model: CtModel
 
     fun getAllWrongUsagesLog(cutQualifiedName: String): String? {
+        loadModel()
         val log: StringBuilder = StringBuilder()
 
         val wrongMethodCalls: String? = getWrongMethodCallsLog(cutQualifiedName)
@@ -43,7 +33,7 @@ class JavaInvocationsAnalyzer(val repositoryPath: String) {
     /**
      * Checks for invalid method call invocations, and generates a log report for it (if such invocations exist)
      */
-    fun getWrongMethodCallsLog(cutQualifiedName: String): String? {
+    private fun getWrongMethodCallsLog(cutQualifiedName: String): String? {
         val log: StringBuilder = StringBuilder()
         val methodSignatures: Map<String, List<CtMethod<*>>> = extractMethodSignatures()
 
@@ -65,7 +55,7 @@ class JavaInvocationsAnalyzer(val repositoryPath: String) {
      * The function checks the repository (including Tests) for any incorrect invocations of mock objects
      * Returns the findings as a string, in the form of a log output
      */
-    fun getWrongMockUsageLog(cutQualifiedName: String): String? {
+    private fun getWrongMockUsageLog(cutQualifiedName: String): String? {
         val log: StringBuilder = StringBuilder()
 
         // Find all method signatures (To check whether any of the mock calls use them)
@@ -279,5 +269,20 @@ class JavaInvocationsAnalyzer(val repositoryPath: String) {
         }
 
         return false
+    }
+
+    /**
+     * The class is based on Spoon, and Spoon's model needs to be reloaded every time there are changes in the code
+     * Since we are interested in recent test changes, the model needs to be loaded before using it
+     */
+    private fun loadModel() {
+        // Initialize Spoon
+        val launcher = Launcher()
+        launcher.addInputResource(repositoryPath + "src/main")
+        launcher.addInputResource(repositoryPath + "src/test")
+        launcher.buildModel()
+
+        // Get the Spoon model
+        model = launcher.model
     }
 }

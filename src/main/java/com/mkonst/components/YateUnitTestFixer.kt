@@ -1,9 +1,7 @@
 package com.mkonst.components
 
 import com.aallam.openai.api.chat.ChatMessage
-import com.github.javaparser.symbolsolver.resolution.typeinference.bounds.FalseBound
 import com.mkonst.analysis.ClassContainer
-import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.analysis.MethodCallGraph
 import com.mkonst.analysis.java.JavaArgumentsAnalyzer
 import com.mkonst.analysis.java.JavaInvocationsAnalyzer
@@ -12,7 +10,7 @@ import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.interfaces.YateUnitTestFixerInterface
 import com.mkonst.models.ChatOpenAIModel
-import com.mkonst.services.MethodCallGraphService
+import com.mkonst.services.MethodCallGraphProvider
 import com.mkonst.services.PromptService
 import com.mkonst.types.ClassMethod
 import com.mkonst.types.CodeResponse
@@ -24,7 +22,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
     private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
     private val invocationsAnalyzer: JavaInvocationsAnalyzer = JavaInvocationsAnalyzer(repositoryPath)
     private val methodProvider: JavaMethodProvider = JavaMethodProvider(repositoryPath)
-    private val methodCallGraph: MethodCallGraph = MethodCallGraphService.getNewMethodCallGraph(repositoryPath, packageName) ?: throw Exception("Method Call Graph cannot be null or empty")
+    private val methodCallGraph: MethodCallGraph = MethodCallGraphProvider.getNewMethodCallGraph(repositoryPath, packageName)
 
     init {
         if (methodCallGraph.size() <= 0) {
