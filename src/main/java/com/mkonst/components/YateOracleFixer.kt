@@ -14,9 +14,8 @@ import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
 
 class YateOracleFixer(private var repositoryPath: String,
-                      private var dependencyTool: String)
+                      private var dependencyTool: String): AbstractModelComponent()
 {
-    private var model: ChatOpenAIModel = ChatOpenAIModel();
     private val errorService: ErrorService = ErrorService(repositoryPath)
 
     /**

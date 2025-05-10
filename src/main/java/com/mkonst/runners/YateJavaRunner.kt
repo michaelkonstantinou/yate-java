@@ -130,6 +130,16 @@ class YateJavaRunner(
         yateOracleFixer.closeConnection()
     }
 
+    fun getNrRequests(): Int {
+        return yateGenerator.getNrRequests() + yateTestFixer.getNrRequests() + yateOracleFixer.getNrRequests()
+    }
+
+    fun resetNrRequests() {
+        yateGenerator.resetNrRequests()
+        yateTestFixer.resetNrRequests()
+        yateOracleFixer.resetNrRequests()
+    }
+
     /**
      * For each import statement in the testClassContainer of the response, the method leverages the ImportsAnalyzer
      * to check for import statements that do not reflect a valid class in the repository
@@ -239,11 +249,14 @@ class YateJavaRunner(
      *
      * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
      */
-    private fun removeNonCompilingTests(response: YateResponse) {
+    public fun removeNonCompilingTests(response: YateResponse) {
         val nonPassingTests = errorService.findNonPassingTests(dependencyTool, false)
         val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
         if (!classRelatedInvalidTests.isNullOrEmpty()) {
-            YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+            val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+
+            response.recreateTestClassContainer(newContent)
+            response.testClassContainer.toTestFile()
         }
     }
 }

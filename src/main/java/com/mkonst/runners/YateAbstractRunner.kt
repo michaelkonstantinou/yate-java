@@ -81,7 +81,9 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
     private fun moveGenerateFile(response: YateResponse) {
         val sourcePath: String? = response.testClassContainer.paths.testClass
         if (outputDirectory !== null && sourcePath !== null) {
-            val newPath = YateIO.moveFileToDirectory(response.testClassContainer.paths.testClass!!, outputDirectory)
+            val directoriesAfterRepository: String = response.testClassContainer.paths.testClass!!.substringAfter("src/test").substringBefore(response.testClassContainer.className + "." + lang)
+            val newDir = outputDirectory + directoriesAfterRepository
+            val newPath = YateIO.moveFileToDirectory(response.testClassContainer.paths.testClass!!, newDir)
 
             if (newPath !== null) {
                 YateConsole.info("Generated test file has been moved. New path: $newPath")

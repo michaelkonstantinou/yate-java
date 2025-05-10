@@ -113,6 +113,14 @@
             <version>3.15.1</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- CSV reading -->
+        <dependency>
+            <groupId>com.github.doyaaaaaken</groupId>
+            <artifactId>kotlin-csv-jvm</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

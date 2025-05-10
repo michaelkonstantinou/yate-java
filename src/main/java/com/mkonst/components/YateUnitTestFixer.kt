@@ -17,8 +17,7 @@ import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 import com.openai.errors.BadRequestException
 
-class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String): YateUnitTestFixerInterface {
-    private var model: ChatOpenAIModel = ChatOpenAIModel()
+class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String): AbstractModelComponent(), YateUnitTestFixerInterface {
     private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
     private val invocationsAnalyzer: JavaInvocationsAnalyzer = JavaInvocationsAnalyzer(repositoryPath)
     private val methodProvider: JavaMethodProvider = JavaMethodProvider(repositoryPath)

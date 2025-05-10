@@ -3,13 +3,11 @@ package com.mkonst.components
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.interfaces.YateUnitGeneratorInterface
-import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 
-class YateUnitGenerator : YateUnitGeneratorInterface {
-    private var model: ChatOpenAIModel = ChatOpenAIModel();
+class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
 
     /**
      * Generates the Unit Test cases at a class-level. It requires a ClassContainer instance of the class under test

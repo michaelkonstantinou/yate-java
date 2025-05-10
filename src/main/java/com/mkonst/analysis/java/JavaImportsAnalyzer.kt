@@ -102,19 +102,16 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
 
 
         // Process each class
-        for (clazz in model.getElements<CtElement> { e: CtElement? -> e is CtClass<*> }.stream()
-            .map { e: CtElement? -> e as CtClass<*>? }
-            .toList()) {
-//            System.out.println("🔍 Analyzing class: " + clazz.getQualifiedName());
+        for (clazz in model.getElements<CtElement> { e: CtElement? -> e is CtClass<*> }
+            .filterIsInstance<CtClass<*>>()) {
 
             // Set to store missing imports
-
             val missingImports: MutableSet<String> = HashSet()
             val missingImportsWithoutPackage: MutableSet<String> = HashSet()
 
             // Get the compilation unit (file) of the class
             // Skip if not found
-            val compilationUnit = clazz?.position?.compilationUnit ?: continue
+            val compilationUnit = clazz.position?.compilationUnit ?: continue
 
             // Process each method in the class
             for (method in clazz.methods) {

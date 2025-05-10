@@ -26,8 +26,6 @@ object YateJavaExecution {
      * errors from a compiling suite.
      */
     private fun runMavenTestsForErrors(repositoryPath: String, includeCompilingTests: Boolean = false): String? {
-        // todo: Make sure to switch to the correct java version
-
         val command = listOf("mvn", "clean", "test", "-Drat.skip=True")
         val processBuilder = ProcessBuilder(command)
                 .directory(File(repositoryPath))
