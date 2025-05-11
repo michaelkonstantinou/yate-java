@@ -57,7 +57,7 @@ class ChatOpenAIModel(model: String? = null) {
 
         // Initialize conversation. Do not append the system prompt (even if given), if history is present
         val conversation: MutableList<ChatMessage> = if (history !== null) history else mutableListOf()
-        if (history !== null && systemPrompt !== null) {
+        if (history === null && systemPrompt !== null) {
             conversation.add(ChatMessage(ChatRole.System, systemPrompt))
         }
 

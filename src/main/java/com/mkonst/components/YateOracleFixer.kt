@@ -211,6 +211,8 @@ class YateOracleFixer(private var repositoryPath: String,
             val newCodeLines = codeLines.toMutableList()
             newCodeLines[lineToChange] = modelResponse.codeContent!!
             appendNewContentFromLines(newCodeLines, response)
+
+            // NOTE: The new conversation is not stored to the response but its nr of requests is still recorded
         }
 
         // In case of error return the old codeLines state
@@ -257,6 +259,7 @@ class YateOracleFixer(private var repositoryPath: String,
         // Verify that the model's response is compiling before updating the response object
         if (YateJavaUtils.isClassParsing(modelResponse.codeContent!!)) {
             response.recreateTestClassContainer(modelResponse.codeContent)
+            // NOTE: The new conversation is not stored to the response but its nr of requests is still recorded
 
             return true
         }

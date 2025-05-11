@@ -1,0 +1,5 @@
+Looking at the error log, I noticed that some of the errors state that the class makes ambiguous references. Specifically:
+
+%%REFERENCES%%
+
+For ambiguous references you need to make sure that the arguments passed in the constructor are valid types and not "null". For instance, do not use 'null' for a java.lang.String instance but an actual String. You can always mock all instances if the errors persist or the types are non-primitives. (e.g. mock(java.lang.String) instead of 'something random')

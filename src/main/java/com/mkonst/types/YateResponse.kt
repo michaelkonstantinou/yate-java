@@ -8,9 +8,9 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 data class YateResponse(
-        var testClassContainer: ClassContainer,
-        val conversation: MutableList<ChatMessage>,
-        var hasChanges: Boolean = false)
+    var testClassContainer: ClassContainer,
+    var conversation: MutableList<ChatMessage>,
+    var hasChanges: Boolean = false)
 {
     /**
      * Creates and assigns a new test class container to this instance, based on the new body content given

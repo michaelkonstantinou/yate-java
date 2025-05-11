@@ -4,6 +4,7 @@ import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.helpers.YateJavaExecution
+import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import java.io.File
@@ -17,11 +18,11 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonPassingTests(dependencyTool: String, includeCompilingTests: Boolean = true): Map<String, MutableSet<String>> {
+    fun findNonPassingTests(dependencyTool: String): Map<String, MutableSet<String>> {
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
 
         // Step 1: Run tests and get errors
-        val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = includeCompilingTests)
+        val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
         if (errors == null) {
             return emptyMap()
         }
@@ -37,6 +38,50 @@ class ErrorService(private val repositoryPath: String) {
 
                 val methods = testsByTestClass.getOrPut(testClass) { mutableSetOf() }
                 methods.add(testMethod)
+            }
+        }
+
+        return testsByTestClass
+    }
+
+    /**
+     * Runs the tests in the repository and returns a map with the non-passing tests for each test class
+     */
+    fun findNonCompilingTests(dependencyTool: String): Map<String, MutableSet<String>> {
+        val errorLinesByFile = mutableMapOf<String, MutableSet<Int>>()
+        val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
+
+        // Step 1: Run tests and get errors
+        val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = false)
+        if (errors == null) {
+            return emptyMap()
+        }
+
+        val reNonPassingErrorLine = Regex("""^\[ERROR\]\s+(.+\.java):\[(\d+),(\d+)]""")
+
+        // Step 2: Iterate errors and collect faulty lines per file
+        for (errorLine in errors.lineSequence()) {
+            val matchResult = reNonPassingErrorLine.find(errorLine)
+
+            if (matchResult != null) {
+                val (testClass, lineNumber) = matchResult.destructured
+//                println("$testClass - $lineNumber")
+
+                val errorLines = errorLinesByFile.getOrPut(testClass) { mutableSetOf() }
+                errorLines.add(lineNumber.toInt())
+            }
+        }
+
+        // Step 3: Iterate all files that contain error lines, and get the method names that contain the error line
+        for ((filename, errorLines) in errorLinesByFile) {
+
+            // Verify that this is a test file and not anything from the source code
+            if (filename.contains("/src/test/")) {
+                val invalidMethods = YateJavaUtils.findMethodsFromLines(File(filename), errorLines)
+                if (invalidMethods.isNotEmpty()) {
+                    val methods = testsByTestClass.getOrPut(filename) { mutableSetOf() }
+                    methods.addAll(invalidMethods)
+                }
             }
         }
 

@@ -91,6 +91,10 @@ class YateJavaRunner(
     }
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
+        // todo: remove test
+        removeNonCompilingTests(response)
+        System.exit(0)
+
         YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
         appendSuggestImports(response)
         removeInvalidImports(response)
@@ -249,9 +253,10 @@ class YateJavaRunner(
      *
      * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
      */
-    public fun removeNonCompilingTests(response: YateResponse) {
-        val nonPassingTests = errorService.findNonPassingTests(dependencyTool, false)
-        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
+    private fun removeNonCompilingTests(response: YateResponse) {
+        val nonPassingTests = errorService.findNonCompilingTests(dependencyTool)
+        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.paths.testClass]
+
         if (!classRelatedInvalidTests.isNullOrEmpty()) {
             val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
 

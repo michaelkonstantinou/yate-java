@@ -2,6 +2,8 @@ package com.mkonst.helpers
 
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseProblemException
+import com.github.javaparser.StaticJavaParser
+import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.analysis.ClassContainer
 import java.io.File
@@ -156,6 +158,40 @@ object YateJavaUtils {
         }
     }
 
+    fun findAmbiguousReferences(errorLog: String): List<Pair<String, String>> {
+        val pattern = Regex(""":\[(\d+),\d+] reference to (\w+) is ambiguous""")
+        val results = mutableListOf<Pair<String, String>>()
 
+        val logLines = errorLog.lines()
 
+        for (line in logLines) {
+            val match = pattern.find(line)
+            if (match != null) {
+                val lineNumber = match.groupValues[1]
+                val className = match.groupValues[2]
+                results.add(Pair(lineNumber, className))
+            }
+        }
+
+        return results
+    }
+
+    fun findMethodsFromLines(file: File, lineNumbers: Set<Int>): Set<String> {
+        val result = mutableSetOf<String>()
+
+        val cu: CompilationUnit = StaticJavaParser.parse(file)
+        val methods = cu.findAll(MethodDeclaration::class.java)
+
+        for (line in lineNumbers) {
+            for (method in methods) {
+                val range = method.range.orElse(null)
+                if (range != null && line in range.begin.line..range.end.line) {
+                    result.add(method.nameAsString)
+                    break
+                }
+            }
+        }
+
+        return result
+    }
 }

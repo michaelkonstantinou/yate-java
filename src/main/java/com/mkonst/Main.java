@@ -30,6 +30,12 @@ public class Main {
         String csvFile = "/Users/michael.konstantinou/Library/Application Support/JetBrains/IntelliJIdea2023.3/scratches/input.csv";
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
         YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
+
+        // test
+        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGeneratorTest.java");
+        runner.close();
+        System.exit(0);
+
         for(EvaluationDatasetRecord record: dataset.getRecords()) {
             System.out.println("Iterating class: " + record.getClassPath());
             var startTime = System.currentTimeMillis();

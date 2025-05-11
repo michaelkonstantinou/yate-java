@@ -31,7 +31,7 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
             response.testClassContainer.toTestFile()
             response.save()
 
-            moveGenerateFile(response)
+            moveGeneratedFile(response)
         }
     }
 
@@ -78,7 +78,7 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
      * If the given response object does not contain a valid test class path, the
      * method will do nothing
      */
-    private fun moveGenerateFile(response: YateResponse) {
+    private fun moveGeneratedFile(response: YateResponse) {
         val sourcePath: String? = response.testClassContainer.paths.testClass
         if (outputDirectory !== null && sourcePath !== null) {
             val directoriesAfterRepository: String = response.testClassContainer.paths.testClass!!.substringAfter("src/test").substringBefore(response.testClassContainer.className + "." + lang)

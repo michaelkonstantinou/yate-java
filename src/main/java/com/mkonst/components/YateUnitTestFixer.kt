@@ -8,6 +8,7 @@ import com.mkonst.analysis.java.JavaInvocationsAnalyzer
 import com.mkonst.analysis.java.JavaMethodProvider
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
+import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.interfaces.YateUnitTestFixerInterface
 import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.MethodCallGraphProvider
@@ -44,7 +45,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
      * If this method is called subsequently then it might be wise to turn it off for optimization.
      */
     fun fixTestsFromErrorLog(response: YateResponse, includeClassCodeInPrompt: Boolean = true): YateResponse {
-        val errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool)
+        var errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool)
 
         if (errors === null) {
             response.hasChanges = false
@@ -52,7 +53,15 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
             return response
         }
 
-        // todo: Find ambiguous references
+        // Find ambiguous references. Append them to the end of the error log (if any) but DO NOT execute another prompt
+        val ambiguousReferences = YateJavaUtils.findAmbiguousReferences(errors)
+        if (ambiguousReferences.isNotEmpty()) {
+            var references = ""
+            for (reference: Pair<String, String> in ambiguousReferences) {
+                references += "In line ${reference.first} a new ${reference.second} instance is instantiated but it is ambiguous which raises an error.\n"
+            }
+            errors += "\n\n" + PromptService.get("fix_ambiguous_references", hashMapOf("REFERENCES" to references))
+        }
 
         // Use the model and attempt to fix the errors based on the error log provided from execution
         val promptVars = hashMapOf("CLASS_CONTENT" to response.testClassContainer.getCompleteContent(), "ERRORS" to errors)
@@ -172,6 +181,11 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
 
         // Create a new test class container with the new information
         response.recreateTestClassContainer(modelResponse.codeContent)
+
+        // Update the history of the chat conversation only if the model responded with a valid code content
+        if (modelResponse.codeContent !== null) {
+            response.conversation = modelResponse.conversation
+        }
 
         return response
     }
