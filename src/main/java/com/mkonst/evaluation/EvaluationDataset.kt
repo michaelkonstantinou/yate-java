@@ -14,12 +14,13 @@ class EvaluationDataset(val file: String? = null) {
                 val record = EvaluationDatasetRecord(
                     repositoryPath = row["repositoryPath"]!!,
                     classPath = row["classPath"]!!,
-                    classLevel = TestLevel.valueOf(row["classLevel"]!!.uppercase()),
-                    requests = row["requests"]?.toInt() ?: 0,
-                    generationTime = row["generationTime"]?.toLong() ?: 0,
+                    testLevel = TestLevel.valueOf(row["testLevel"]!!.uppercase()),
+                    requests = row["requests"]?.toIntOrNull() ?: 0,
+                    generationTime = row["generationTime"]?.toLongOrNull() ?: 0,
                     isExecuted = row["isExecuted"]?.toBoolean() ?: false,
                     errors = row["errors"],
-                    outputDir = row["outputDir"]
+                    outputDir = row["outputDir"],
+                    generatedTests = row["generatedTests"]?.toIntOrNull() ?: 0,
                 )
                 records.add(record)
             }
@@ -27,7 +28,7 @@ class EvaluationDataset(val file: String? = null) {
     }
 
     fun saveAs(filename: String) {
-        val header = listOf("repositoryPath", "classPath", "classLevel", "requests", "generationTime", "isExecuted", "errors", "outputDir")
+        val header = listOf("repositoryPath", "classPath", "classLevel", "requests", "generationTime", "isExecuted", "errors", "outputDir", "generatedTests")
 
         csvWriter().open(File(filename)) {
             writeRow(header)
@@ -35,12 +36,13 @@ class EvaluationDataset(val file: String? = null) {
                 writeRow(
                     record.repositoryPath,
                     record.classPath,
-                    record.classLevel.name,
+                    record.testLevel.name,
                     record.requests,
                     record.generationTime,
                     record.isExecuted,
                     record.errors,
-                    record.outputDir
+                    record.outputDir,
+                    record.generatedTests
                 )
             }
         }

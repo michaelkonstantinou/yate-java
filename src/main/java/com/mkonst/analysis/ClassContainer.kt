@@ -12,8 +12,6 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
 
     init {
         body = convertRawContentToStructure()
-
-        // todo: Add required import statements
     }
 
     /**

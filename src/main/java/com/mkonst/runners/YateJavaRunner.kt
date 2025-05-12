@@ -91,10 +91,6 @@ class YateJavaRunner(
     }
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
-        // todo: remove test
-        removeNonCompilingTests(response)
-        System.exit(0)
-
         YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
         appendSuggestImports(response)
         removeInvalidImports(response)

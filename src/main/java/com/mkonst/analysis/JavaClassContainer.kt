@@ -1,6 +1,7 @@
 package com.mkonst.analysis
 
 import com.mkonst.analysis.java.JavaClassParser
+import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateIO
 import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.interfaces.analysis.CodeClassParserInterface
@@ -111,7 +112,12 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
             return ClassBody()
         }
 
-        return JavaClassParser().getBodyDecoded(this.bodyContent)
+        val bodyDecoded = JavaClassParser().getBodyDecoded(this.bodyContent)
+
+        // Append required imports
+        bodyDecoded.imports.addAll(ConfigYate.getArray("REQUIRED_IMPORTS"))
+
+        return bodyDecoded
     }
 
     override fun copy(): ClassContainer {

@@ -2,6 +2,7 @@ package com.mkonst.config;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 public class ConfigYate {
@@ -21,5 +22,11 @@ public class ConfigYate {
 
     public static int getInteger(String name) {
         return Integer.parseInt(properties.getProperty(name));
+    }
+
+    public static String[] getArray(String name) {
+        String joinedItems = properties.getProperty(name);
+
+        return joinedItems.split(",");
     }
 }
