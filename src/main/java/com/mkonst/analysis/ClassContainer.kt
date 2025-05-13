@@ -20,15 +20,39 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
      */
     abstract fun getCompleteContent(): String
 
-    abstract fun getPrivateMethods(): MutableList<String>
+    /**
+     * Iterates the methods under body and returns the method names of the ones who have the private modifier
+     */
+    fun getPrivateMethods(): MutableList<String> {
+        val methodsToReturn: MutableList<String> = mutableListOf()
+        for ((methodName, modifier) in body.methods) {
+            if (modifier == "private") {
+                methodsToReturn.add(methodName)
+            }
+        }
 
-    abstract fun getProtectedMethods(): MutableList<String>
+        return methodsToReturn
+    }
 
-    abstract fun appendImports(importsToAppend: MutableList<String>)
+    /**
+     * Iterates the methods under body and returns the method names of the ones who have the protected modifier
+     */
+    fun getProtectedMethods(): MutableList<String> {
+        val methodsToReturn: MutableList<String> = mutableListOf()
+        for ((methodName, modifier) in body.methods) {
+            if (modifier == "protected") {
+                methodsToReturn.add(methodName)
+            }
+        }
+
+        return methodsToReturn
+    }
 
     fun removeImports(importsToRemove: MutableList<String>) {
         body.imports.removeAll(importsToRemove)
     }
+
+    abstract fun appendImports(importsToAppend: MutableList<String>)
 
     abstract fun convertRawContentToStructure(): ClassBody
 

@@ -15,26 +15,17 @@ import com.mkonst.types.YateResponse
 import java.io.File
 
 class YateJavaRunner(
-    val repositoryPath: String,
+    repositoryPath: String,
     private val includeOracleFixing: Boolean = true,
     private val outputDirectory: String? = null
-): YateAbstractRunner(lang = "java", outputDirectory = outputDirectory) {
+): YateAbstractRunner(repositoryPath = repositoryPath, lang = "java", outputDirectory = outputDirectory) {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
     private var yateOracleFixer: YateOracleFixer
-    private var dependencyTool: String
-    private var packageName: String
     private val errorService: ErrorService = ErrorService(repositoryPath)
     private val importsAnalyzer: JavaImportsAnalyzer
 
     init {
-        // Identify whether a pom.xml file is present
-        // The purpose of this process is to check whether the repository is using maven or gradle
-        val pomFile = File(repositoryPath, "pom.xml")
-        dependencyTool = if (pomFile.exists() && pomFile.isFile) "maven" else "gradle"
-        println("The given repository is using $dependencyTool")
-
-        packageName = YateCodeUtils.getRootPackage(repositoryPath)
         yateTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
         yateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
         importsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
@@ -86,6 +77,8 @@ class YateJavaRunner(
         YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
         response.testClassContainer.toTestFile()
         removeNonCompilingTests(response)
+
+        removeNonPassingTests(response)
 
         return response
     }
@@ -251,6 +244,24 @@ class YateJavaRunner(
      */
     private fun removeNonCompilingTests(response: YateResponse) {
         val nonPassingTests = errorService.findNonCompilingTests(dependencyTool)
+        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.paths.testClass]
+
+        if (!classRelatedInvalidTests.isNullOrEmpty()) {
+            val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+
+            response.recreateTestClassContainer(newContent)
+            response.testClassContainer.toTestFile()
+        }
+    }
+
+    /**
+     * Executes the tests and finds the ones that did not compile
+     * Based on the YateResponse's class, it will remove the tests that are relevant to the generated test class
+     *
+     * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
+     */
+    private fun removeNonPassingTests(response: YateResponse) {
+        val nonPassingTests = errorService.findNonPassingTests(dependencyTool)
         val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.paths.testClass]
 
         if (!classRelatedInvalidTests.isNullOrEmpty()) {

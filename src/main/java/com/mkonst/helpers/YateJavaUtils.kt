@@ -6,6 +6,7 @@ import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.analysis.ClassContainer
+import com.mkonst.analysis.JavaClassContainer
 import java.io.File
 
 object YateJavaUtils {
@@ -201,6 +202,19 @@ object YateJavaUtils {
     fun countTestMethods(filePath: String): Int {
         val file = File(filePath)
         val cu = StaticJavaParser.parse(file)
+
+        return cu.findAll(MethodDeclaration::class.java)
+            .count { method ->
+                method.annotations.any { it.nameAsString == "Test" }
+            }
+    }
+
+    /**
+     * Scans the code content of a given class container,
+     * and returns the number of methods that contain the @Test annotation
+     */
+    fun countTestMethods(classContainer: ClassContainer): Int {
+        val cu = StaticJavaParser.parse(classContainer.getCompleteContent())
 
         return cu.findAll(MethodDeclaration::class.java)
             .count { method ->

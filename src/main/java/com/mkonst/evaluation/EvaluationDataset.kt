@@ -28,7 +28,7 @@ class EvaluationDataset(val file: String? = null) {
     }
 
     fun saveAs(filename: String) {
-        val header = listOf("repositoryPath", "classPath", "classLevel", "requests", "generationTime", "isExecuted", "errors", "outputDir", "generatedTests")
+        val header = listOf("repositoryPath", "classPath", "testLevel", "requests", "generationTime", "isExecuted", "errors", "outputDir", "generatedTests")
 
         csvWriter().open(File(filename)) {
             writeRow(header)

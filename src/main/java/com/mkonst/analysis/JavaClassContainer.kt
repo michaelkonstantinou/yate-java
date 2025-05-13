@@ -10,7 +10,6 @@ import com.mkonst.types.ClassPathsContainer
 
 
 class JavaClassContainer(className: String, bodyContent: String? = null) : ClassContainer(className, bodyContent) {
-//    private val body = mutableMapOf("package" to null, "imports" to null, "methods" to null, "content" to null)
     companion object {
         @JvmStatic
         fun createFromFile(classPath: String): ClassContainer {
@@ -20,7 +19,7 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
             val classContainer = JavaClassContainer(className, classContent)
 
             // Check whether the class reflects a Test class or a regular class by checking its name and append its path
-            if (className.contains("Test") && classPath.contains("test")) {
+            if (className.endsWith("Test") && classPath.contains("test")) {
                 val outputFolder = YateIO.getFolderFromPath(classPath)
                 classContainer.paths = ClassPathsContainer(outputDirectory = outputFolder, testClass = classPath)
             } else {
@@ -43,7 +42,7 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
             completeClassContent += "package ${body.packageName};\n\n"
         }
 
-        // Append import statements todo: add required import statements
+        // Append import statements
         for (importStatement: String in body.imports) {
             completeClassContent += importStatement + "\n"
         }
@@ -52,34 +51,6 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
         completeClassContent += body.content
 
         return completeClassContent
-    }
-
-    /**
-     * Iterates the methods under body and returns the method names of the ones who have the private modifier
-     */
-    override fun getPrivateMethods(): MutableList<String> {
-        val methodsToReturn: MutableList<String> = mutableListOf()
-        for ((methodName, modifier) in body.methods) {
-            if (modifier == "private") {
-                methodsToReturn.add(methodName)
-            }
-        }
-
-        return methodsToReturn
-    }
-
-    /**
-     * Iterates the methods under body and returns the method names of the ones who have the protected modifier
-     */
-    override fun getProtectedMethods(): MutableList<String> {
-        val methodsToReturn: MutableList<String> = mutableListOf()
-        for ((methodName, modifier) in body.methods) {
-            if (modifier == "protected") {
-                methodsToReturn.add(methodName)
-            }
-        }
-
-        return methodsToReturn
     }
 
     /**

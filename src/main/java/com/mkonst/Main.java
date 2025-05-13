@@ -5,6 +5,7 @@ import com.mkonst.evaluation.EvaluationDataset;
 import com.mkonst.evaluation.EvaluationDatasetRecord;
 import com.mkonst.helpers.YateConsole;
 import com.mkonst.helpers.YateJavaUtils;
+import com.mkonst.helpers.YateUtils;
 import com.mkonst.runners.YateJavaRunner;
 import com.mkonst.services.PromptService;
 import com.mkonst.types.YateResponse;
@@ -23,6 +24,7 @@ public class Main {
         initializeServices();
 
         String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_binance-connector-java-2.0.0.csv";
+
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
         YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
         for(EvaluationDatasetRecord record: dataset.getRecords()) {
@@ -32,22 +34,38 @@ public class Main {
                 continue;
             }
 
-            System.out.println("Iterating class: " + record.getClassPath());
-            var startTime = System.currentTimeMillis();
+            boolean hasFailed = true;
+            int i = 0;
+            while (hasFailed && i < ConfigYate.getInteger("MAX_REPEAT_FAILED_ITERATIONS")) {
+                i++;
 
-            try {
-                YateResponse response = runner.generate(record.getClassPath(), record.getTestLevel());
+                System.out.println("Iterating class (#" + i + "): " + record.getClassPath());
+                var startTime = System.currentTimeMillis();
 
-                record.setExecuted(true);
-                record.setRequests(runner.getNrRequests());
-                record.setGeneratedTests(YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer().getPaths().getTestClass()));
-            } catch (Exception e) {
-                record.setErrors(e.getMessage());
+                try {
+                    YateResponse response = runner.generate(record.getClassPath(), record.getTestLevel());
+
+                    if (response == null) {
+                        hasFailed = true;
+                        runner.resetNrRequests();
+
+                        continue;
+                    }
+
+                    // Everything went smoothly, update stats
+                    record.setExecuted(true);
+                    record.setRequests(runner.getNrRequests());
+                    record.setGeneratedTests(YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer()));
+                    hasFailed = false;
+                } catch (Exception e) {
+                    record.setErrors(e.getMessage());
+                    hasFailed = true;
+                }
+
+                var endTime = System.currentTimeMillis();
+                record.setGenerationTime(endTime - startTime);
+                runner.resetNrRequests();
             }
-
-            var endTime = System.currentTimeMillis();
-            record.setGenerationTime(endTime - startTime);
-            runner.resetNrRequests();
 
             YateConsole.INSTANCE.info("Updating dataset file");
             dataset.saveAs(csvFile);
@@ -56,7 +74,8 @@ public class Main {
         runner.close();
 
         YateConsole.INSTANCE.info("Saving a new dataset file by the name: ");
-        dataset.saveAs(csvFile);
+        String newCsvFile = csvFile.replace(".csv", "_results_" + YateUtils.INSTANCE.timestamp() + ".csv");
+        dataset.saveAs(newCsvFile);
 
 //        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
 //        String outputDir = repositoryPath + "yate-java-tests/";

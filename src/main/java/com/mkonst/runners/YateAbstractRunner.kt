@@ -2,12 +2,28 @@ package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.config.ConfigYate
+import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateIO
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
+import java.io.File
 
-abstract class YateAbstractRunner(val lang: String = "java", private val outputDirectory: String? = null) {
+abstract class YateAbstractRunner(protected open val repositoryPath: String, val lang: String = "java", private val outputDirectory: String? = null) {
+    protected var dependencyTool: String
+    protected var packageName: String
+
+    init {
+        // Identify whether a pom.xml file is present
+        // The purpose of this process is to check whether the repository is using maven or gradle
+        val pomFile = File(repositoryPath, "pom.xml")
+        dependencyTool = if (pomFile.exists() && pomFile.isFile) "maven" else "gradle"
+        println("The given repository is using $dependencyTool")
+
+        packageName = YateCodeUtils.getRootPackage(repositoryPath)
+        println("The package name of the repository under test is: $packageName")
+    }
 
     fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS): YateResponse? {
         val cutContainer: ClassContainer
@@ -17,6 +33,8 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
             // todo()
             cutContainer = JavaClassContainer.createFromFile(classPath)
         }
+
+        var hasFailed: Boolean = false
 
         // Depending on the selected test level, generate a new test class (Saved in YateResponse)
         if (testLevel == TestLevel.CLASS) {
@@ -31,11 +49,16 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
                 fixOraclesInTestClass(response)
                 response.testClassContainer.toTestFile()
                 response.save()
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+                YateConsole.error("An error occurred when generating/fixing tests!")
+                hasFailed = true
+            }
 
             moveGeneratedFile(response)
 
-            return response
+            if (!hasFailed) {
+                return response
+            }
         }
 
         return null
@@ -95,9 +118,5 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
                 YateConsole.info("Generated test file has been moved. New path: $newPath")
             }
         }
-    }
-
-    private fun onFailure(response: YateResponse) {
-        // todo: move generated file and return sth maybe
     }
 }

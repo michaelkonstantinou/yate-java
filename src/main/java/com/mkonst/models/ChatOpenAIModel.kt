@@ -31,14 +31,14 @@ class ChatOpenAIModel(model: String? = null) {
                     token = ConfigYate.getString("DEEPSEEK_API_KEY"),
                     host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL")),
                     logging = LoggingConfig(LogLevel.None),
-                    timeout = Timeout(socket = 60.seconds),
+                    timeout = Timeout(socket = 600.seconds),
             )
         } else {
             this.client = OpenAI(
                     token = ConfigYate.getString("GPT_API_KEY"),
                     organization = ConfigYate.getString("GPT_ORGANIZATION"),
                     logging = LoggingConfig(LogLevel.None),
-                    timeout = Timeout(socket = 60.seconds),
+                    timeout = Timeout(socket = 600.seconds),
             )
         }
     }
