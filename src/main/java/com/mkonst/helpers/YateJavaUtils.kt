@@ -194,4 +194,17 @@ object YateJavaUtils {
 
         return result
     }
+
+    /**
+     * Scans the given filepath, and returns the number of methods that contain the @Test annotation
+     */
+    fun countTestMethods(filePath: String): Int {
+        val file = File(filePath)
+        val cu = StaticJavaParser.parse(file)
+
+        return cu.findAll(MethodDeclaration::class.java)
+            .count { method ->
+                method.annotations.any { it.nameAsString == "Test" }
+            }
+    }
 }

@@ -9,7 +9,7 @@ import com.mkonst.types.YateResponse
 
 abstract class YateAbstractRunner(val lang: String = "java", private val outputDirectory: String? = null) {
 
-    fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS) {
+    fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS): YateResponse? {
         val cutContainer: ClassContainer
         if (lang.lowercase() == "java") {
             cutContainer = JavaClassContainer.createFromFile(classPath)
@@ -23,16 +23,22 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
             val response: YateResponse = generateTestsForClass(cutContainer)
             response.testClassContainer.toTestFile()
 
-            fixGeneratedTestClass(cutContainer, response)
-            response.testClassContainer.toTestFile()
-            response.save()
+            try {
+                fixGeneratedTestClass(cutContainer, response)
+                response.testClassContainer.toTestFile()
+                response.save()
 
-            fixOraclesInTestClass(response)
-            response.testClassContainer.toTestFile()
-            response.save()
+                fixOraclesInTestClass(response)
+                response.testClassContainer.toTestFile()
+                response.save()
+            } catch (_: Exception) {}
 
             moveGeneratedFile(response)
+
+            return response
         }
+
+        return null
     }
 
     fun fix(classPath: String, testClassPath: String) {
@@ -89,5 +95,9 @@ abstract class YateAbstractRunner(val lang: String = "java", private val outputD
                 YateConsole.info("Generated test file has been moved. New path: $newPath")
             }
         }
+    }
+
+    private fun onFailure(response: YateResponse) {
+        // todo: move generated file and return sth maybe
     }
 }

@@ -5,33 +5,77 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.mkonst.interfaces.analysis.CodeClassParserInterface
 import com.mkonst.types.ClassBody
+import com.mkonst.types.exceptions.CannotParseCodeException
+import kotlin.jvm.Throws
 
 class JavaClassParser: CodeClassParserInterface {
+    private val packageRegex = Regex("""^\s*package\s+([\w.]+)\s*;?""")
+    private val importRegex = Regex("""^\s*import.*""")
 
+    /**
+     * Attempts to parse the code and split the code into the following components: package, imports, body, methods
+     * In case the code does not parse, the function will attempt to identify the components using regex and try again
+     *
+     * In the end, if the code is still not parsable, it will throw an exception
+     */
+    @Throws(CannotParseCodeException::class)
     override fun getBodyDecoded(classContent: String): ClassBody {
-        val parser = JavaParser()
-        val result = parser.parse(classContent)
+        var compilationUnit: CompilationUnit
+        var packageName: String?
+        var imports: MutableList<String>
+        var classBody: String
+        try {
+            compilationUnit = parseContent(classContent)
 
-        if (!result.isSuccessful || !result.result.isPresent) {
-            throw IllegalArgumentException("Failed to parse Java code")
+            // 1. Package name
+            packageName = compilationUnit.packageDeclaration.map { it.nameAsString }.orElse(null)
+
+            // 2. Get all import statements (regardless of execution)
+            imports = compilationUnit.imports.map { it.toString().trim() }.toMutableList()
+
+            // 3. Class declaration + body: We'll rebuild it by removing package/imports and fixing minor typos
+            classBody = getCleanBodyContent(classContent.trim(), packageName, imports)
+        } catch (e: CannotParseCodeException) {
+
+            // Try to decode code using regex
+            val lines = classContent.lines()
+            val importLines = lines.filter { importRegex.matches(it) }.toMutableList()
+            val packageLine = lines.firstOrNull { it.trim().startsWith("package") }
+
+            packageName = packageLine?.let { line ->
+                val match = packageRegex.find(line)
+                match?.groupValues?.get(1)
+            }
+
+            imports = filterInvalidImports(importLines)
+            classBody = getCleanBodyContent(classContent, packageName, importLines)
+
+            // Attempt to parse code once again. If it doesn't work then fail
+            compilationUnit = parseContent(classBody)
         }
-
-        val compilationUnit: CompilationUnit = result.result.get()
-
-        // 1. Package name
-        val packageName = compilationUnit.packageDeclaration.map { it.nameAsString }.orElse(null)
-
-        // 2. Imports
-        val imports = compilationUnit.imports.map { it.toString().trim() }.toMutableList()
-
-        // 3. Class declaration + body
-        // We'll rebuild it by removing package/imports and fixing minor typos
-        val classBody: String = getCleanBodyContent(classContent.trim(), packageName, imports)
 
         val methodModifiers = getMethodsWithModifiers(compilationUnit)
         val hasConstructors = hasConstructors(compilationUnit)
 
         return ClassBody(packageName, imports, methodModifiers, classBody, hasConstructors)
+    }
+
+    /**
+     * Uses JavaParser to parse the given classContent. If successful, it returns a JavaParser CompilationUnit instance
+     * In case of failure, it throws a CannotParseCodeException
+     */
+    @Throws(CannotParseCodeException::class)
+    private fun parseContent(classContent: String): CompilationUnit {
+        val parser = JavaParser()
+        val result = parser.parse(classContent)
+
+        if (!result.isSuccessful || !result.result.isPresent) {
+            throw CannotParseCodeException()
+        }
+
+        val compilationUnit: CompilationUnit = result.result.get()
+
+        return compilationUnit
     }
 
     /**
@@ -122,5 +166,39 @@ class JavaClassParser: CodeClassParserInterface {
         cleanContent = cleanContent.replace(unexpectedPackageLine, "")
 
         return cleanContent
+    }
+
+    /**
+     * Returns a new list of import statements that filtered out statements that won't compile in a java environment
+     */
+    private fun filterInvalidImports(imports: List<String>): MutableList<String> {
+        val cleanImports: MutableList<String> = mutableListOf()
+
+        for (import: String in imports) {
+
+            val trimmed = import.trim()
+
+            // Skip empty lines and comment lines
+            if (trimmed.isBlank() || trimmed.startsWith("//")) {
+                continue
+            }
+
+            // Skip if import starts with a dot (e.g., "import .foo.Bar")
+            if (trimmed.matches(Regex("""import\s+\..*"""))) {
+                continue
+            }
+
+            // Skip if "import" is present but nothing follows, or it's malformed
+            if (trimmed == "import"
+                || trimmed == "import;"
+                || trimmed.matches(Regex("""import\s*;"""))
+                || trimmed.matches(Regex("""import\s*//.*"""))) {
+                continue
+            }
+
+            cleanImports.add(trimmed)
+        }
+
+        return cleanImports
     }
 }

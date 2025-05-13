@@ -12,6 +12,7 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
 import com.mkonst.types.CodeResponse
+import io.ktor.client.network.sockets.*
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 
@@ -67,8 +68,13 @@ class ChatOpenAIModel(model: String? = null) {
             conversation.add(ChatMessage(ChatRole.User, prompt))
 
             runBlocking {
-                answer = executeRequest(conversation)
-                conversation.add(ChatMessage(ChatRole.Assistant, answer))
+                try {
+                    answer = executeRequest(conversation)
+                    conversation.add(ChatMessage(ChatRole.Assistant, answer))
+                } catch (e: SocketTimeoutException) {
+                    answer = executeRequest(conversation)
+                    conversation.add(ChatMessage(ChatRole.Assistant, answer))
+                }
             }
         }
 
