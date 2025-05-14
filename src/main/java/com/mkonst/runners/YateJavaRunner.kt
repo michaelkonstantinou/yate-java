@@ -11,6 +11,8 @@ import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.services.ErrorService
+import com.mkonst.types.ProgramLangType
+import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 import java.io.File
 
@@ -18,7 +20,7 @@ class YateJavaRunner(
     repositoryPath: String,
     private val includeOracleFixing: Boolean = true,
     private val outputDirectory: String? = null
-): YateAbstractRunner(repositoryPath = repositoryPath, lang = "java", outputDirectory = outputDirectory) {
+): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
     private var yateOracleFixer: YateOracleFixer
@@ -34,10 +36,22 @@ class YateJavaRunner(
      * Generates unit tests regarding a given class. Depending on the test-level, the method will generate tests
      * for the whole class, for the constructors, for the methods or for a combination of the aforementioned
      */
-    override fun generateTestsForClass(cutContainer: ClassContainer): YateResponse {
+    override fun generateTestsForClass(cutContainer: ClassContainer, testLevel: TestLevel): YateResponse {
         YateConsole.debug("Using YateUnitGenerator to generate the test cases for the given class")
 
-        return yateGenerator.generateForClass(cutContainer)
+        return if (testLevel === TestLevel.CLASS) {
+            yateGenerator.generateForClass(cutContainer)
+        } else if (testLevel === TestLevel.CONSTRUCTOR){
+            yateGenerator.generateForConstructors(cutContainer)
+        } else {
+            throw Exception("Method generateTestsForClass does not support the generation of such tests")
+        }
+    }
+
+    override fun generateTestsForMethod(cutContainer: ClassContainer, methodUnderTest: String): YateResponse {
+        YateConsole.debug("Using YateUnitGenerator to generate the test cases for method: $methodUnderTest")
+
+        return yateGenerator.generateForMethod(cutContainer, methodUnderTest)
     }
 
     /**

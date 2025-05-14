@@ -14,22 +14,35 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
      */
     override fun generateForClass(cutContainer: ClassContainer): YateResponse {
         val systemPrompt: String = PromptService.get("system")
-        val generationPrompts: MutableList<String> = getPromptsForGeneration(cutContainer, "class")
-        val response: CodeResponse = model.ask(generationPrompts, systemPrompt)
 
-        // Prepare a new ClassContainer for the generated test class
-        val testContainer = JavaClassContainer(cutContainer.className + "Test", response.codeContent)
-        testContainer.body.packageName = cutContainer.body.packageName
-        testContainer.appendImports(cutContainer.body.imports)
+        // Add the prompt that forces the LLM to identify the needed tests by generating a summary/report
+        val generationPrompts: MutableList<String> = mutableListOf()
+        val promptIdentifyTests = PromptService.get("identify_tests") + "\n\n" + cutContainer.getCompleteContent()
+        generationPrompts.add(promptIdentifyTests)
 
-        // Find that paths of the class under test and the generated test class
-        testContainer.setPathsFromCut(cutContainer)
+        // Append a prompt that specifies non-public method (if any of them exist)
+        val promptNonPublicMethods = getPromptForNonPublicMethod(cutContainer)
+        if (promptNonPublicMethods !== null) {
+            generationPrompts.add(promptNonPublicMethods)
+        }
 
-        return YateResponse(testContainer, response.conversation)
+        // Append the prompt that asks the LLM to generate the tests
+        generationPrompts.add(PromptService.get("generate_tests"))
+        val testClassName = cutContainer.className + "Test"
+
+        return generateTestUsingModel(systemPrompt, generationPrompts, cutContainer, testClassName)
     }
 
     override fun generateForConstructors(cutContainer: ClassContainer): YateResponse {
-        TODO("Not yet implemented")
+        val systemPrompt: String = PromptService.get("system")
+        val generationPrompts: MutableList<String> = mutableListOf()
+
+        val testClassName: String = cutContainer.className + "ConstructorsTest"
+        val promptIdentifyTests = PromptService.get("identify_tests_constructors") + "\n\n" + cutContainer.getCompleteContent()
+        generationPrompts.add(promptIdentifyTests)
+        generationPrompts.add(PromptService.get("generate_tests_named_class", hashMapOf("CLASS_NAME" to testClassName)))
+
+        return generateTestUsingModel(systemPrompt, generationPrompts, cutContainer, testClassName)
     }
 
     override fun generateForMethod(cutContainer: ClassContainer, methodName: String): YateResponse {
@@ -99,6 +112,29 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
         }
 
         return null
+    }
+
+    /**
+     * Uses the model to generate a new Test class based on the given prompts
+     * Afterward, the method will instantiate a new ClassContainer instance that contains the generated Test Class
+     *
+     * Returns a YateResponse instance, that contains the generated Class Container and the interaction with the model
+     */
+    private fun generateTestUsingModel(systemPrompt: String,
+                                       generationPrompts: MutableList<String>,
+                                       cutContainer: ClassContainer,
+                                       newTestClassName: String): YateResponse {
+        val response: CodeResponse = model.ask(generationPrompts, systemPrompt)
+
+        // Prepare a new ClassContainer for the generated test class
+        val testContainer = JavaClassContainer(newTestClassName, response.codeContent)
+        testContainer.body.packageName = cutContainer.body.packageName
+        testContainer.appendImports(cutContainer.body.imports)
+
+        // Find that paths of the class under test and the generated test class
+        testContainer.setPathsFromCut(cutContainer)
+
+        return YateResponse(testContainer, response.conversation)
     }
 
     override fun closeConnection() {

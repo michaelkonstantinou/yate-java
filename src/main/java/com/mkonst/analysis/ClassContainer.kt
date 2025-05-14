@@ -5,8 +5,9 @@ import com.mkonst.helpers.YateIO
 import com.mkonst.interfaces.analysis.CodeClassParserInterface
 import com.mkonst.types.ClassBody
 import com.mkonst.types.ClassPathsContainer
+import com.mkonst.types.ProgramLangType
 
-abstract class ClassContainer(val className: String, val bodyContent: String? = null) {
+abstract class ClassContainer(val className: String, val bodyContent: String? = null, val lang: ProgramLangType) {
     var body: ClassBody = ClassBody()
     var paths: ClassPathsContainer = ClassPathsContainer()
 

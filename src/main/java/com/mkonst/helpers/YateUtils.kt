@@ -1,5 +1,7 @@
 package com.mkonst.helpers
 
+import com.mkonst.analysis.ClassContainer
+import com.mkonst.types.YateResponse
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -10,5 +12,22 @@ object YateUtils {
         val formatted = now.format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"))
 
         return formatted
+    }
+
+    /**
+     * The method will move the generate test file, to the specified outputDirectory.
+     * If the given response object does not contain a valid test class path, the method will do nothing
+     */
+    fun moveGeneratedTestClass(testClassContainer: ClassContainer, outputDirectory: String) {
+        val sourcePath: String? = testClassContainer.paths.testClass
+        if (sourcePath !== null) {
+            val directoriesAfterRepository: String = testClassContainer.paths.testClass!!.substringAfter("src/test").substringBefore(testClassContainer.className + testClassContainer.lang.extension)
+            val newDir = outputDirectory + directoriesAfterRepository
+            val newPath = YateIO.moveFileToDirectory(testClassContainer.paths.testClass!!, newDir)
+
+            if (newPath !== null) {
+                YateConsole.info("Generated test file has been moved. New path: $newPath")
+            }
+        }
     }
 }

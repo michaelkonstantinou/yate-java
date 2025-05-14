@@ -7,9 +7,11 @@ import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.interfaces.analysis.CodeClassParserInterface
 import com.mkonst.types.ClassBody
 import com.mkonst.types.ClassPathsContainer
+import com.mkonst.types.ProgramLangType
 
 
-class JavaClassContainer(className: String, bodyContent: String? = null) : ClassContainer(className, bodyContent) {
+class JavaClassContainer(className: String, bodyContent: String? = null) : ClassContainer(className, bodyContent, ProgramLangType.JAVA) {
+
     companion object {
         @JvmStatic
         fun createFromFile(classPath: String): ClassContainer {
