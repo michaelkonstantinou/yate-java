@@ -22,7 +22,6 @@ class YateJavaRunner(
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
     private var yateOracleFixer: YateOracleFixer
-    private val errorService: ErrorService = ErrorService(repositoryPath)
     private val importsAnalyzer: JavaImportsAnalyzer
 
     init {
@@ -234,41 +233,5 @@ class YateJavaRunner(
         }
 
         return response
-    }
-
-    /**
-     * Executes the tests and finds the ones that did not compile
-     * Based on the YateResponse's class, it will remove the tests that are relevant to the generated test class
-     *
-     * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
-     */
-    private fun removeNonCompilingTests(response: YateResponse) {
-        val nonPassingTests = errorService.findNonCompilingTests(dependencyTool)
-        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.paths.testClass]
-
-        if (!classRelatedInvalidTests.isNullOrEmpty()) {
-            val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
-
-            response.recreateTestClassContainer(newContent)
-            response.testClassContainer.toTestFile()
-        }
-    }
-
-    /**
-     * Executes the tests and finds the ones that did not compile
-     * Based on the YateResponse's class, it will remove the tests that are relevant to the generated test class
-     *
-     * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
-     */
-    private fun removeNonPassingTests(response: YateResponse) {
-        val nonPassingTests = errorService.findNonPassingTests(dependencyTool)
-        val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.paths.testClass]
-
-        if (!classRelatedInvalidTests.isNullOrEmpty()) {
-            val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
-
-            response.recreateTestClassContainer(newContent)
-            response.testClassContainer.toTestFile()
-        }
     }
 }

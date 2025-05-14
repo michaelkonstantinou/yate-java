@@ -13,8 +13,10 @@ import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
 
-class YateOracleFixer(private var repositoryPath: String,
-                      private var dependencyTool: String): AbstractModelComponent()
+open class YateOracleFixer(private var repositoryPath: String,
+                           private var dependencyTool: String,
+                           private var expectedTypesToIgnore: MutableList<String> = mutableListOf()
+): AbstractModelComponent()
 {
     private val errorService: ErrorService = ErrorService(repositoryPath)
 
@@ -68,8 +70,19 @@ class YateOracleFixer(private var repositoryPath: String,
         var nrErrorsFixed = 0
         val exceptionErrors = errorService.findExceptionErrorsFromReport(response.testClassContainer.getQualifiedName())
         for (error: OracleError in exceptionErrors) {
+
+            // Check whether the OracleError's expected type is not in the ones to ignore
+            if (error.exceptionType in this.expectedTypesToIgnore) {
+                YateConsole.debug("Ignoring exception oracle: ${error.exceptionType}")
+
+                continue
+            }
+
+            // Find the line's content (is -1 from the reported error line in the log)
             val lineToChange = error.lineNumber - 1
             val lineContent = codeLinesWithChanges[lineToChange].trim()
+
+            // Attempt to create an exception oracle statically without the use of an LLM first
             val exceptionOracle = YateJavaUtils.createExceptionOracleFromStatement(lineContent, "${error.exceptionType}.class")
             if (exceptionOracle !== null) {
                 YateConsole.debug("Adding exception oracle statically in $lineToChange: $exceptionOracle ")

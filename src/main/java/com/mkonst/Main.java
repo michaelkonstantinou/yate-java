@@ -8,6 +8,8 @@ import com.mkonst.helpers.YateJavaUtils;
 import com.mkonst.helpers.YateUtils;
 import com.mkonst.runners.YateJavaRunner;
 import com.mkonst.services.PromptService;
+import com.mkonst.types.TestErrorType;
+import com.mkonst.types.TestLevel;
 import com.mkonst.types.YateResponse;
 
 import java.io.IOException;
@@ -23,10 +25,22 @@ public class Main {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
+        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
+        String outputDir = repositoryPath + "yate-java-tests/";
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, false, null);
+        runner.removeFailingTests("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGeneratorTest.java", TestErrorType.NON_PASSING);
+        runner.close();
+        System.exit(0);
+
+        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", TestLevel.CLASS);
+//        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
+        runner.close();
+        System.exit(0);
+
         String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_binance-connector-java-2.0.0.csv";
 
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
-        YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
+        runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
         for(EvaluationDatasetRecord record: dataset.getRecords()) {
 
             // Verify that the record has not been executed
@@ -77,11 +91,6 @@ public class Main {
         String newCsvFile = csvFile.replace(".csv", "_results_" + YateUtils.INSTANCE.timestamp() + ".csv");
         dataset.saveAs(newCsvFile);
 
-//        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
-//        String outputDir = repositoryPath + "yate-java-tests/";
-//        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, outputDir);
-//        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", TestLevel.CLASS);
-////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
-//        runner.close();
+
     }
 }

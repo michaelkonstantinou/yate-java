@@ -35,7 +35,6 @@ class ErrorService(private val repositoryPath: String) {
 
             if (matchResult != null) {
                 val (testClass, testMethod) = matchResult.destructured
-
                 val methods = testsByTestClass.getOrPut(testClass) { mutableSetOf() }
                 methods.add(testMethod)
             }
@@ -65,7 +64,6 @@ class ErrorService(private val repositoryPath: String) {
 
             if (matchResult != null) {
                 val (testClass, lineNumber) = matchResult.destructured
-//                println("$testClass - $lineNumber")
 
                 val errorLines = errorLinesByFile.getOrPut(testClass) { mutableSetOf() }
                 errorLines.add(lineNumber.toInt())
