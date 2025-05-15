@@ -13,6 +13,7 @@ import com.mkonst.types.TestLevel;
 import com.mkonst.types.YateResponse;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Main {
 
@@ -27,8 +28,8 @@ public class Main {
 
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
         String outputDir = repositoryPath + "yate-java-tests/";
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, false, null);
-        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", TestLevel.CLASS);
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", TestLevel.METHOD);
 //        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
         runner.close();
         System.exit(0);
@@ -53,9 +54,9 @@ public class Main {
                 var startTime = System.currentTimeMillis();
 
                 try {
-                    YateResponse response = runner.generate(record.getClassPath(), record.getTestLevel());
+                    List<YateResponse> responses = runner.generate(record.getClassPath(), record.getTestLevel());
 
-                    if (response == null) {
+                    if (responses.isEmpty()) {
                         hasFailed = true;
                         runner.resetNrRequests();
 
@@ -65,7 +66,10 @@ public class Main {
                     // Everything went smoothly, update stats
                     record.setExecuted(true);
                     record.setRequests(runner.getNrRequests());
-                    record.setGeneratedTests(YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer()));
+
+                    for (YateResponse response: responses) {
+                        record.addGeneratedTests(YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer()));
+                    }
                     hasFailed = false;
                 } catch (Exception e) {
                     record.setErrors(e.getMessage());

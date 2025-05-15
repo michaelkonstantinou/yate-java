@@ -12,4 +12,8 @@ data class EvaluationDatasetRecord(
     var errors: String?,
     var outputDir: String?,
     var generatedTests: Int
-)
+) {
+    fun addGeneratedTests(value: Int) {
+        this.generatedTests += value
+    }
+}

@@ -46,51 +46,14 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
     }
 
     override fun generateForMethod(cutContainer: ClassContainer, methodName: String): YateResponse {
-        TODO("Not yet implemented")
-    }
+        val systemPrompt: String = PromptService.get("system")
+        val generationPrompts: MutableList<String> = mutableListOf()
+        val testClassName: String = cutContainer.className + "_" + methodName + "_Test"
 
-    /**
-     * The function will check the testLevel and construct a list of the prompts that will be given to the LLM to
-     * generate the test cases.
-     */
-    fun getPromptsForGeneration(cutContainer: ClassContainer, testLevel: String, mut: String? = null): MutableList<String> {
-        val prompts = mutableListOf<String>()
-        var promptIdentifyTests: String = "";
-        var promptGenerateTests: String = "";
+        generationPrompts.add(PromptService.get("identify_tests_method", hashMapOf("METHOD_NAME" to methodName)) + "\n\n" + cutContainer.getCompleteContent())
+        generationPrompts.add(PromptService.get("generate_tests_named_class", hashMapOf("CLASS_NAME" to testClassName)))
 
-        when (testLevel) {
-            "class" ->  {
-                promptIdentifyTests = PromptService.get("identify_tests") + "\n\n" + cutContainer.getCompleteContent()
-                promptGenerateTests = PromptService.get("generate_tests")
-                prompts.add(promptIdentifyTests)
-
-                // Append a prompt that specifies non-public method (if any of them exist)
-                val promptNonPublicMethods = getPromptForNonPublicMethod(cutContainer)
-                if (promptNonPublicMethods !== null) {
-                    prompts.add(promptNonPublicMethods)
-                }
-            }
-            "constructor" ->  {
-                val testClassName: String = cutContainer.className + "ConstructorsTest"
-                promptIdentifyTests = PromptService.get("identify_tests_constructors") + "\n\n" + cutContainer.getCompleteContent()
-                prompts.add(promptIdentifyTests)
-                promptGenerateTests = PromptService.get("generate_tests_named_class", hashMapOf("CLASS_NAME" to testClassName))
-            }
-            "method" -> {
-                if (mut === null) {
-                    throw Exception("Method level testing requires a valid method name to test. Null given")
-                }
-
-                val testClassName: String = cutContainer.className + "_" + mut + "_Test"
-                promptIdentifyTests = PromptService.get("identify_tests_method", hashMapOf("METHOD_NAME" to mut)) + "\n\n" + cutContainer.getCompleteContent()
-                prompts.add(promptIdentifyTests)
-                promptGenerateTests = PromptService.get("generate_tests_named_class", hashMapOf("CLASS_NAME" to testClassName))
-            }
-        }
-
-        prompts.add(promptGenerateTests)
-
-        return prompts
+        return generateTestUsingModel(systemPrompt, generationPrompts, cutContainer, testClassName)
     }
 
     private fun getPromptForNonPublicMethod(cutContainer: ClassContainer): String? {

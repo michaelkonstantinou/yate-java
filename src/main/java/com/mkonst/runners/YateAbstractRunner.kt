@@ -28,9 +28,20 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         println("The package name of the repository under test is: $packageName")
     }
 
-    fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS): YateResponse? {
+    /**
+     * Given the absolute path of the class under test, the method will generate a number of test cases
+     * depending on the TestLevel provided
+     *
+     * CLASS -> Generates 1 test class for the whole file
+     * CONSTRUCTORS -> Generates 1 test class for all the constructors ONLY
+     * METHOD -> Generates 1 test class PER METHOD, and 1 test class for the constructors
+     * METHOD_RESTRICT -> Generates 1 test class per method but not for the constructors
+     * HYBRID -> Starts with Class-level testing, and the proceeds to selective method testing based on coverage
+     */
+    fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS): MutableList<YateResponse> {
         val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
         var hasFailed: Boolean = false
+        val results: MutableList<YateResponse> = mutableListOf()
 
         // Depending on the selected test level, generate a new test class (Saved in YateResponse)
         when (testLevel) {
@@ -40,7 +51,7 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
                 hasFailed = onValidation(cutContainer, response)
 
                 if (!hasFailed) {
-                    return response
+                    results.add(response)
                 }
             }
             TestLevel.CONSTRUCTOR -> {
@@ -50,19 +61,49 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
                     hasFailed = onValidation(cutContainer, response)
 
                     if (!hasFailed) {
-                        return response
+                        results.add(response)
                     }
                 }
             }
             TestLevel.METHOD -> {
-                for(mut: String in cutContainer.body.methods.values) {
-                    val response: YateResponse = generateTestsForClass(cutContainer, TestLevel.METHOD)
+                // Initially generate tests for constructors
+                results.addAll(this.generate(classPath, TestLevel.CONSTRUCTOR))
+
+                // Iterate all available methods and generate tests for each one of them individually
+                results.addAll(this.generate(classPath, TestLevel.METHOD_RESTRICT))
+            }
+            TestLevel.METHOD_RESTRICT -> {
+                // Iterate all available methods and generate tests for each one of them individually
+                for(mut: String in cutContainer.body.methods.keys) {
+                    val response: YateResponse = generateTestsForMethod(cutContainer, mut)
                     response.testClassContainer.toTestFile()
                     hasFailed = onValidation(cutContainer, response)
+
+                    if (!hasFailed) {
+                        results.add(response)
+                    }
                 }
             }
-            TestLevel.METHOD_RESTRICT -> TODO()
             TestLevel.HYBRID -> TODO()
+        }
+
+        return results
+    }
+
+    /**
+     * Generates 1 test class for the given method under test
+     * Returns a YateResponse instance that includes the generated Test class, only if the operation
+     * was successful
+     */
+    fun generate(classPath: String, methodName: String): YateResponse? {
+        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
+        var hasFailed: Boolean = false
+        val response: YateResponse = generateTestsForMethod(cutContainer, methodName)
+        response.testClassContainer.toTestFile()
+        hasFailed = onValidation(cutContainer, response)
+
+        if (!hasFailed) {
+            return response
         }
 
         return null
