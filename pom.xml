@@ -129,6 +129,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Kotlinx Serialization JSON -->
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-json</artifactId>
+            <version>1.6.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -149,6 +155,9 @@
                                 <source>src/main/java</source>
                                 <source>target/generated-sources/annotations</source>
                             </sourceDirs>
+                            <compilerPlugins>
+                                <plugin>kotlinx-serialization</plugin>
+                            </compilerPlugins>
                         </configuration>
                     </execution>
                     <execution>
@@ -159,6 +168,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-serialization</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <jvmTarget>${maven.compiler.target}</jvmTarget>
                 </configuration>

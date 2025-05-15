@@ -3,6 +3,8 @@ package com.mkonst.types
 import com.aallam.openai.api.chat.ChatMessage
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.config.ConfigYate
+import com.mkonst.helpers.YateIO
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -33,7 +35,12 @@ data class YateResponse(
     }
 
     fun save() {
+        // Save conversation
         val jsonString = Json.encodeToString(conversation)
-        File("messages.json").writeText(jsonString)
+        val outputFilepath: String = ConfigYate.getString("DIR_OUTPUT") + testClassContainer.className + "_conversation.json"
+        YateIO.writeFile(outputFilepath, jsonString)
+
+        // Save Test Class Container (important) fields
+        testClassContainer.toJson()
     }
 }

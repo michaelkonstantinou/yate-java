@@ -1,11 +1,15 @@
 package com.mkonst.analysis
 
 import com.mkonst.analysis.java.JavaClassParser
+import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateIO
 import com.mkonst.interfaces.analysis.CodeClassParserInterface
 import com.mkonst.types.ClassBody
 import com.mkonst.types.ClassPathsContainer
 import com.mkonst.types.ProgramLangType
+import com.mkonst.types.serializable.ClassContainerJson
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 abstract class ClassContainer(val className: String, val bodyContent: String? = null, val lang: ProgramLangType) {
     var body: ClassBody = ClassBody()
@@ -90,5 +94,18 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
         } else {
             YateIO.writeFile(this.paths.testClass!!, getCompleteContent())
         }
+    }
+
+    fun toJson() {
+        val jsonString = Json.encodeToString(ClassContainerJson(className, body.packageName ?: "",
+            body.imports,
+            body.methods,
+            body.content,
+            body.hasConstructors,
+            paths.cut,
+            paths.testClass))
+
+        val outputFilepath: String = ConfigYate.getString("DIR_OUTPUT") + className + ".json"
+        YateIO.writeFile(outputFilepath, jsonString)
     }
 }
