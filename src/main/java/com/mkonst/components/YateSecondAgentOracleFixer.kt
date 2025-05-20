@@ -15,9 +15,9 @@ class YateSecondAgentOracleFixer(repositoryPath: String,
 ): YateOracleFixer(repositoryPath, dependencyTool, expectedTypesToIgnore) {
     private var modelSecondFixer: ChatOpenAIModel = ChatOpenAIModel()
 
-    override fun fixErrorsUsingModel(response: YateResponse): Int {
-        return 0
-    }
+//    override fun fixErrorsUsingModel(response: YateResponse): Int {
+//        return 0
+//    }
 
     /**
      * Uses a second agent that will attempt to identify the reason behind failing tests due to NullPointerException

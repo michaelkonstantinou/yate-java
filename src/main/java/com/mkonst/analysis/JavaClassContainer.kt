@@ -88,7 +88,11 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
         val bodyDecoded = JavaClassParser().getBodyDecoded(this.bodyContent)
 
         // Append required imports
-        bodyDecoded.imports.addAll(ConfigYate.getArray("REQUIRED_IMPORTS"))
+        for (requiredImport: String in ConfigYate.getArray("REQUIRED_IMPORTS")) {
+            if (!this.body.imports.contains(requiredImport)) {
+                this.body.imports.add(requiredImport)
+            }
+        }
 
         return bodyDecoded
     }
@@ -100,6 +104,10 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
         return newInstance
     }
 
+    /**
+     * Based on the given class under test, the method will generate the complete file path of the test (assuming this
+     * instance is the test class) and update the paths of this object to contain both: original cut path and test path
+     */
     fun setPathsFromCut(cutContainer: ClassContainer) {
         val testClassPath = YateJavaUtils.getTestClassPath(cutContainer, this)
         paths = ClassPathsContainer(cutContainer.paths.cut, testClassPath)

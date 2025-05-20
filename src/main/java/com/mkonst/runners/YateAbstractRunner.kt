@@ -196,6 +196,7 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.paths.testClass]
 
         if (!classRelatedInvalidTests.isNullOrEmpty()) {
+            YateConsole.debug("$classRelatedInvalidTests tests must be removed as they do not compile")
             // todo: check whether the language is java or kotlin
             val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
 

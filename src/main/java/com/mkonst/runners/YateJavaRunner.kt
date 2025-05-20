@@ -24,12 +24,12 @@ class YateJavaRunner(
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
-    private var yateOracleFixer: YateSecondAgentOracleFixer
+    private var yateOracleFixer: YateOracleFixer
     private val importsAnalyzer: JavaImportsAnalyzer
 
     init {
         yateTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
-        yateOracleFixer = YateSecondAgentOracleFixer(repositoryPath, dependencyTool)
+        yateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
         importsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
     }
 
@@ -86,13 +86,11 @@ class YateJavaRunner(
         response.testClassContainer.toTestFile()
         removeNonCompilingTests(response)
 
-        // Second agent based fixing (if enabled)
-        // todo: remove explicit cut declaration
-        response.testClassContainer.paths.cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java"
-        val errorsFixedFromSecondAgent = yateOracleFixer.fixErrorsUsingSecondAgent(response)
-        YateConsole.info("$errorsFixedFromSecondAgent fixed using the output log and the second agent")
-        response.testClassContainer.toTestFile()
-        removeNonCompilingTests(response)
+//        // Second agent based fixing (if enabled)
+//        val errorsFixedFromSecondAgent = yateOracleFixer.fixErrorsUsingSecondAgent(response)
+//        YateConsole.info("$errorsFixedFromSecondAgent fixed using the output log and the second agent")
+//        response.testClassContainer.toTestFile()
+//        removeNonCompilingTests(response)
 
         // LLM-based fixing (if enabled)
         val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
@@ -180,8 +178,13 @@ class YateJavaRunner(
      * If such statements are found, the method will append them to the ClassContainer of the YateResponse object
      */
     private fun appendSuggestImports(response: YateResponse): YateResponse {
-        val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
-        response.testClassContainer.appendImports(suggestedImportStatements);
+        try {
+            val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
+            response.testClassContainer.appendImports(suggestedImportStatements)
+        } catch (e: Exception) {
+            YateConsole.debug("An error occurred when analyzing the import statements. Perhaps Spoon could not analyze the class")
+            YateConsole.error(e.message ?: "")
+        }
 
         return response
     }
