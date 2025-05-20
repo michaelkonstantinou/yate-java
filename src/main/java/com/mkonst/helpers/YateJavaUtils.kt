@@ -32,12 +32,22 @@ object YateJavaUtils {
     }
 
     /**
-     * Checks if a given Java class exists given its package name.
+     * Checks if a given Java class exists given its package name, with the exact string case
      */
-    fun classPackageExists(repositoryPath: String, packageName: String): Boolean {
-        val classFilePath = getClassFileFromPackage(repositoryPath, packageName)
+    fun classPackageExists(repositoryPath: String, classQualifiedName: String): Boolean {
+        val classFile = File(getClassFileFromPackage(repositoryPath, classQualifiedName))
+        val className = classQualifiedName.substringAfterLast(".")
 
-        return File(classFilePath).isFile
+        // To check for case-sensitive files, we need to find the parent and output the filenames as found there
+        val parentFile = classFile.parentFile
+        if (!parentFile.exists() || !classFile.exists() || !classFile.isFile) {
+            return false
+        }
+
+        val filesInDir = parentFile.list() ?: return false
+
+        // Check that the parent file contains a file with the EXACT name and the EXACT same case
+        return filesInDir.contains("$className.java")
     }
 
     /**

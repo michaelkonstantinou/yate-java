@@ -122,7 +122,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
         val instructionImplementations: StringBuilder = StringBuilder()
 
         val calledMethods: MutableList<ClassMethod> = mutableListOf()
-        for (methodName in cutContainer.body.methods.values) {
+        for (methodName in cutContainer.body.methods.keys) {
             val methodCalledMethods: MutableList<ClassMethod> = methodCallGraph.getMethodCallsFrom(ClassMethod(cutContainer.getQualifiedName(methodName)))
             if (methodCalledMethods.isNotEmpty()) {
                 calledMethods.addAll(methodCalledMethods)

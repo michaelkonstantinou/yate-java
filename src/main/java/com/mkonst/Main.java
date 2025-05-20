@@ -26,21 +26,21 @@ public class Main {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
-        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/";
-//        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
-////        System.exit(0);
-//
-//        String outputDir = repositoryPath + "yate-java-tests/";
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
-        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
-////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
-        runner.close();
-        System.exit(0);
+//        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/";
+////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
+//////        System.exit(0);
+////
+////        String outputDir = repositoryPath + "yate-java-tests/";
+//        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+//        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
+//////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
+//        runner.close();
+//        System.exit(0);
 
         String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_windward.csv";
 
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
-        runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
+        YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
         for(EvaluationDatasetRecord record: dataset.getRecords()) {
 
             // Verify that the record has not been executed
