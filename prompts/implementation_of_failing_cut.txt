@@ -1,0 +1,3 @@
+Here is the implementation of the class that is being under test. Please identify all problems with the previous test class, to find why the tests are failing
+
+%%CLASS_CONTENT%%

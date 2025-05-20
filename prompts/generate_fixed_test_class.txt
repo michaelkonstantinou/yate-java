@@ -1,0 +1,4 @@
+Please apply all the steps that you mentioned and generate a new test class with the changes you suggested.
+Make sure that you return a fully working class that is complete and ready to run.
+
+Respond only with the code of the new test class. Keep the same package name, do not remove any import statements and do not change the name of the class

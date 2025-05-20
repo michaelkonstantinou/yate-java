@@ -7,8 +7,8 @@ import com.mkonst.helpers.YateConsole;
 import com.mkonst.helpers.YateJavaUtils;
 import com.mkonst.helpers.YateUtils;
 import com.mkonst.runners.YateJavaRunner;
+import com.mkonst.services.CoverageService;
 import com.mkonst.services.PromptService;
-import com.mkonst.types.TestErrorType;
 import com.mkonst.types.TestLevel;
 import com.mkonst.types.YateResponse;
 
@@ -27,6 +27,9 @@ public class Main {
         initializeServices();
 
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
+//        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
+//        System.exit(0);
+
         String outputDir = repositoryPath + "yate-java-tests/";
         YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
         runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java", TestLevel.CLASS);

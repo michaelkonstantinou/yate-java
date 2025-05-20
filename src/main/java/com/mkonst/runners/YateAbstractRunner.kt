@@ -5,11 +5,9 @@ import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.*
 import com.mkonst.providers.ClassContainerProvider
+import com.mkonst.services.CoverageService
 import com.mkonst.services.ErrorService
-import com.mkonst.types.ProgramLangType
-import com.mkonst.types.TestErrorType
-import com.mkonst.types.TestLevel
-import com.mkonst.types.YateResponse
+import com.mkonst.types.*
 import java.io.File
 
 abstract class YateAbstractRunner(protected open val repositoryPath: String, val lang: ProgramLangType = ProgramLangType.JAVA, private val outputDirectory: String? = null) {
@@ -47,6 +45,7 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         when (testLevel) {
             TestLevel.CLASS -> {
                 val response: YateResponse = generateTestsForClass(cutContainer, TestLevel.CLASS)
+                response.testClassContainer.paths.cut = classPath
                 response.testClassContainer.toTestFile()
                 hasFailed = onValidation(cutContainer, response)
 
@@ -84,7 +83,35 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
                     }
                 }
             }
-            TestLevel.HYBRID -> TODO()
+            TestLevel.HYBRID -> {
+                this.generate(classPath, TestLevel.CLASS)
+
+                // Get uncovered methods and generate a test for each uncovered method
+                YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, true)
+                val uncoveredMethods = CoverageService.getMissingCoverageForClass(repositoryPath, cutContainer.getQualifiedName())
+                var hasUncoveredConstructors = false
+
+                for (method: MethodCoverage in uncoveredMethods) {
+                    // Ignore constructors, but make sure this is flagged to generate tests for constructors next
+                    if (method.name.contains("(Constructor)")) {
+                        hasUncoveredConstructors = true
+                        continue
+                    }
+
+                    val response: YateResponse = generateTestsForMethod(cutContainer, method.name)
+                    response.testClassContainer.toTestFile()
+                    hasFailed = onValidation(cutContainer, response)
+
+                    if (!hasFailed) {
+                        results.add(response)
+                    }
+                }
+
+                // Generate tests for constructors if some of the uncovered methods is a constructor
+                if (hasUncoveredConstructors) {
+                    this.generate(classPath, TestLevel.CONSTRUCTOR)
+                }
+            }
         }
 
         return results
@@ -109,6 +136,10 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         return null
     }
 
+    /**
+     * Invokes the fix process implemented in the Runner class given the original class under test path, and the
+     * generated test class' path
+     */
     fun fix(classPath: String, testClassPath: String) {
         val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
         val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
@@ -117,6 +148,9 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         fixGeneratedTestClass(cutContainer, response)
     }
 
+    /**
+     * Invokes the process of fixing the non-passing oracles in the given test class
+     */
     fun fixOracles(testClassPath: String) {
         val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
         val response = YateResponse(testContainer, mutableListOf())
@@ -195,15 +229,15 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         try {
             fixGeneratedTestClass(cutContainer, response)
             response.testClassContainer.toTestFile()
-            response.save()
 
             fixOraclesInTestClass(response)
             response.testClassContainer.toTestFile()
-            response.save()
         } catch (e: Exception) {
             YateConsole.error("An error occurred when generating/fixing tests!")
             YateConsole.error(e.message ?: "")
             hasFailed = true
+        } finally {
+            response.save()
         }
 
         if (outputDirectory !== null) {

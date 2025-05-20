@@ -1,0 +1,3 @@
+The generated test class is not passing. Please regenerate the test class and return a fully working test class, ready to be executed and run.
+If there are any missing values in the class or placeholders for me to fill, generate the value that will work based on your judgement.
+Respond only with the code of the test class

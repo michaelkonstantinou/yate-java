@@ -13,12 +13,12 @@ import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
 
-open class YateOracleFixer(private var repositoryPath: String,
-                           private var dependencyTool: String,
-                           private var expectedTypesToIgnore: MutableList<String> = mutableListOf()
+open class YateOracleFixer(protected var repositoryPath: String,
+                           protected var dependencyTool: String,
+                           protected var expectedTypesToIgnore: MutableList<String> = mutableListOf()
 ): AbstractModelComponent()
 {
-    private val errorService: ErrorService = ErrorService(repositoryPath)
+    protected val errorService: ErrorService = ErrorService(repositoryPath)
 
     /**
      * Executes the tests in the repository, reads the errors and attempts to fix the tests to make them pass.
@@ -126,7 +126,7 @@ open class YateOracleFixer(private var repositoryPath: String,
         return nrErrorsFixed
     }
 
-    fun fixErrorsUsingModel(response: YateResponse): Int {
+    open fun fixErrorsUsingModel(response: YateResponse): Int {
         // Step 1: Execute tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
 

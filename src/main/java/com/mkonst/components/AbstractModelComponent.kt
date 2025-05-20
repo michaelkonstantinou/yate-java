@@ -5,11 +5,11 @@ import com.mkonst.models.ChatOpenAIModel
 abstract class AbstractModelComponent {
     protected var model: ChatOpenAIModel = ChatOpenAIModel()
 
-    fun getNrRequests(): Int {
+    open fun getNrRequests(): Int {
         return model.nrRequests
     }
 
-    fun resetNrRequests() {
+    open fun resetNrRequests() {
         model.nrRequests = 0
     }
 }

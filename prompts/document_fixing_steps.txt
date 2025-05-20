@@ -1,0 +1,5 @@
+Thank you. Now, please document all required steps to fix the test class in order for the tests to pass. All changes must be done to the test class.
+
+In other words, DO NOT modify the original class and DO NOT run shell commands, DO NOT require file generation tools or require modifications outside the test class
+
+Please document all required steps

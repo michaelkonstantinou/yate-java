@@ -3,6 +3,7 @@ package com.mkonst.runners
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.YateOracleFixer
+import com.mkonst.components.YateSecondAgentOracleFixer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.components.YateUnitTestFixer
 import com.mkonst.config.ConfigYate
@@ -23,12 +24,12 @@ class YateJavaRunner(
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
-    private var yateOracleFixer: YateOracleFixer
+    private var yateOracleFixer: YateSecondAgentOracleFixer
     private val importsAnalyzer: JavaImportsAnalyzer
 
     init {
         yateTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
-        yateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
+        yateOracleFixer = YateSecondAgentOracleFixer(repositoryPath, dependencyTool)
         importsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
     }
 
@@ -85,7 +86,15 @@ class YateJavaRunner(
         response.testClassContainer.toTestFile()
         removeNonCompilingTests(response)
 
-        // LLM-based fixing
+        // Second agent based fixing (if enabled)
+        // todo: remove explicit cut declaration
+        response.testClassContainer.paths.cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java"
+        val errorsFixedFromSecondAgent = yateOracleFixer.fixErrorsUsingSecondAgent(response)
+        YateConsole.info("$errorsFixedFromSecondAgent fixed using the output log and the second agent")
+        response.testClassContainer.toTestFile()
+        removeNonCompilingTests(response)
+
+        // LLM-based fixing (if enabled)
         val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
         YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
         response.testClassContainer.toTestFile()

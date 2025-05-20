@@ -1,0 +1,5 @@
+The generated test class below, throws certain exceptions. Specifically, the following tests are failing: %%FAILING_TESTS%%
+
+Can you identify the potential reasons why the tests are failing?
+
+%%CLASS_CONTENT%%

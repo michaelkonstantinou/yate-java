@@ -133,8 +133,16 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-serialization-json</artifactId>
-            <version>1.6.3</version>
+            <version>1.8.1</version>
         </dependency>
+
+        <!-- Jsoup for parsing jacoco -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -177,6 +185,9 @@
                 </dependencies>
                 <configuration>
                     <jvmTarget>${maven.compiler.target}</jvmTarget>
+                    <compilerPlugins>
+                        <plugin>kotlinx-serialization</plugin>
+                    </compilerPlugins>
                 </configuration>
             </plugin>
             <plugin>

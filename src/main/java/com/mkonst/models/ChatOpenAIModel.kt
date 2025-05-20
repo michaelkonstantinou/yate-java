@@ -11,7 +11,9 @@ import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
+import com.mkonst.helpers.YateConsole
 import com.mkonst.types.CodeResponse
+import com.openai.errors.BadRequestException
 import io.ktor.client.network.sockets.*
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
@@ -68,13 +70,8 @@ class ChatOpenAIModel(model: String? = null) {
             conversation.add(ChatMessage(ChatRole.User, prompt))
 
             runBlocking {
-                try {
-                    answer = executeRequest(conversation)
-                    conversation.add(ChatMessage(ChatRole.Assistant, answer))
-                } catch (e: SocketTimeoutException) {
-                    answer = executeRequest(conversation)
-                    conversation.add(ChatMessage(ChatRole.Assistant, answer))
-                }
+                answer = executeRequest(conversation, ConfigYate.getInteger("MAX_REPEAT_FAILED_API_ITERATIONS"))
+                conversation.add(ChatMessage(ChatRole.Assistant, answer))
             }
         }
 
@@ -98,5 +95,37 @@ class ChatOpenAIModel(model: String? = null) {
         val completion: ChatCompletion = client.chatCompletion(chatCompletionRequest)
 
         return completion.choices.first().message.content
+    }
+
+    /**
+     * Makes the (possibly network) request to the model and returns its message response as a String
+     */
+    private suspend fun executeRequest(conversation: MutableList<ChatMessage>, maxIterations: Int): String? {
+        val chatCompletionRequest = ChatCompletionRequest(
+            model = ModelId(this.model),
+            temperature = 0.1,
+            messages = conversation
+        )
+
+        // Make an API request based on the previous configuration. In case of error(s), retry until maxIterations
+        var executedIterations = 0
+        while (executedIterations < maxIterations) {
+            try {
+                val completion: ChatCompletion = client.chatCompletion(chatCompletionRequest)
+
+                return completion.choices.first().message.content
+            } catch (e: Exception) {
+                if (e is BadRequestException) {
+                    throw e
+                }
+
+                println("Exception thrown: ${e.javaClass}")
+            }
+
+            YateConsole.error("An error occurred when asking the model for an answer (#$executedIterations)")
+            executedIterations += 1
+        }
+
+        return null
     }
 }
