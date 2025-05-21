@@ -37,7 +37,7 @@ public class Main {
 //        runner.close();
 //        System.exit(0);
 
-        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_windward.csv";
+        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_binance-connector-java-2.0.0.csv";
 
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
         YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
@@ -71,7 +71,11 @@ public class Main {
                     record.setRequests(runner.getNrRequests());
 
                     for (YateResponse response: responses) {
-                        record.addGeneratedTests(YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer()));
+                        int generatedTests = YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer());
+                        if (generatedTests <= 0) {
+                            throw new Exception("Failed to generate tests. Re-run");
+                        }
+                        record.addGeneratedTests(generatedTests);
                     }
                     hasFailed = false;
                 } catch (Exception e) {

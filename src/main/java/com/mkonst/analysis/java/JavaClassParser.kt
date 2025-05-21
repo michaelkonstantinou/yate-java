@@ -177,6 +177,7 @@ class JavaClassParser: CodeClassParserInterface {
         for (import: String in imports) {
 
             val trimmed = import.trim()
+            val trimmedWithoutComments = import.trim().substringBefore("//")
 
             // Skip empty lines and comment lines
             if (trimmed.isBlank() || trimmed.startsWith("//")) {
@@ -185,6 +186,11 @@ class JavaClassParser: CodeClassParserInterface {
 
             // Skip if import starts with a dot (e.g., "import .foo.Bar")
             if (trimmed.matches(Regex("""import\s+\..*"""))) {
+                continue
+            }
+
+            // Skip if import statement contains a $ inside the class
+            if (trimmedWithoutComments.contains("$")) {
                 continue
             }
 

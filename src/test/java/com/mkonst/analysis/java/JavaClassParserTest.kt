@@ -16,6 +16,7 @@ class JavaClassParserTest {
             "",                                  // blank line
             "import ",                          // invalid
             "import com.valid.Class;",             // valid
+            "import okhttp3.Request\$Builder"
         )
 
         val expected = listOf(
@@ -34,8 +35,6 @@ class JavaClassParserTest {
             }
         }
     """.trimIndent()
-
-        println(classContent)
 
         val parser = JavaClassParser()
         val body = parser.getBodyDecoded(classContent)
