@@ -1,10 +1,7 @@
 package com.mkonst.components
 
 import com.mkonst.analysis.ClassContainer
-import com.mkonst.helpers.YateCodeUtils
-import com.mkonst.helpers.YateConsole
-import com.mkonst.helpers.YateJavaExecution
-import com.mkonst.helpers.YateJavaUtils
+import com.mkonst.helpers.*
 import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.ErrorService
 import com.mkonst.services.PromptService
@@ -115,13 +112,16 @@ open class YateOracleFixer(protected var repositoryPath: String,
         }
 
         // Clean up content using LLM: If fails, then revert back to the test class container without any changes
-        if (!cleanContentAfterExceptionOracles(response)) {
-            YateConsole.error("Could not cleanup code after execution oracles. Reverting changes")
-            response.testClassContainer = testClassWithoutChanges
-            response.hasChanges = false
-
-            return 0
-        }
+        YateConsole.debug("Cleaning up code after exception oracles")
+        val newContent = YateJavaUtils.removeCodeAfterExceptionOracle(response.testClassContainer)
+        response.recreateTestClassContainer(newContent)
+//        if (!cleanContentAfterExceptionOracles(response)) {
+//            YateConsole.error("Could not cleanup code after execution oracles. Reverting changes")
+//            response.testClassContainer = testClassWithoutChanges
+//            response.hasChanges = false
+//
+//            return 0
+//        }
 
         return nrErrorsFixed
     }
@@ -186,8 +186,8 @@ open class YateOracleFixer(protected var repositoryPath: String,
             val actual = errorLogItem.actualValue ?: return response
 
             // Replace original value with actual
-            YateConsole.info("Changing line ${errorLogItem.lineNumber}: Value $actual to $expected")
-            YateCodeUtils.replaceLineInList(codeLinesWithChanges, lineToChange, actual, expected)
+            YateConsole.info("Changing line ${errorLogItem.lineNumber}: Value $expected will change to $actual")
+            YateCodeUtils.replaceLineInList(codeLinesWithChanges, lineToChange, expected, YateUtils.sanitizeString(actual))
 
             // Handle fully qualified expected values (e.g., java.lang.Exception)
             val expectedValueParts = expected.split(".")

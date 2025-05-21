@@ -5,6 +5,9 @@ import com.github.javaparser.ParseProblemException
 import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.github.javaparser.ast.expr.MethodCallExpr
+import com.github.javaparser.ast.stmt.BlockStmt
+import com.github.javaparser.ast.stmt.Statement
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
 import java.io.File
@@ -235,5 +238,30 @@ object YateJavaUtils {
             .count { method ->
                 method.annotations.any { it.nameAsString == "Test" }
             }
+    }
+
+    fun removeCodeAfterExceptionOracle(testClassContainer: ClassContainer): String {
+        val cu: CompilationUnit = StaticJavaParser.parse(testClassContainer.getCompleteContent())
+
+        cu.findAll(MethodDeclaration::class.java).forEach { method ->
+            if (method.getAnnotationByName("Test").isPresent) {
+                val body: BlockStmt = method.body.orElse(null) ?: return@forEach
+                val statements: MutableList<Statement> = body.statements
+
+                val assertIndex = statements.indexOfFirst { stmt ->
+                    stmt.isExpressionStmt &&
+                            stmt.asExpressionStmt().expression.let { expr ->
+                                expr is MethodCallExpr && expr.nameAsString == "assertThrows"
+                            }
+                }
+
+                if (assertIndex != -1 && assertIndex < statements.size - 1) {
+                    // Remove all statements after assertEquals
+                    statements.subList(assertIndex + 1, statements.size).clear()
+                }
+            }
+        }
+
+        return cu.toString()
     }
 }

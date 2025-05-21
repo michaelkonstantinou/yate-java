@@ -87,13 +87,6 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
 
         val bodyDecoded = JavaClassParser().getBodyDecoded(this.bodyContent)
 
-        // Append required imports
-        for (requiredImport: String in ConfigYate.getArray("REQUIRED_IMPORTS")) {
-            if (!this.body.imports.contains(requiredImport)) {
-                this.body.imports.add(requiredImport)
-            }
-        }
-
         return bodyDecoded
     }
 

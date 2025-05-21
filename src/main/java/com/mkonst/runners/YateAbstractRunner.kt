@@ -212,10 +212,16 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
      * It DOES NOT remove all non-compiling tests, only the class-related ones (if any)
      */
     protected fun removeNonPassingTests(response: YateResponse) {
+        if (!ConfigYate.getBoolean("REMOVE_NON_PASSING_TESTS")) {
+            return
+        }
+
         val nonPassingTests = errorService.findNonPassingTests(dependencyTool)
         val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
 
         if (!classRelatedInvalidTests.isNullOrEmpty()) {
+            YateConsole.debug("$classRelatedInvalidTests tests are being removed as they do not pass")
+
             // todo: check whether the language is java or kotlin
             val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
 

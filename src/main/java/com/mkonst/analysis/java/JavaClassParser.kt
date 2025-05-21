@@ -165,7 +165,7 @@ class JavaClassParser: CodeClassParserInterface {
         val unexpectedPackageLine = match?.value ?: ""
         cleanContent = cleanContent.replace(unexpectedPackageLine, "")
 
-        return cleanContent
+        return cleanContent.trimStart()
     }
 
     /**

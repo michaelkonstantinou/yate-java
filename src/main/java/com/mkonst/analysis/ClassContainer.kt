@@ -17,6 +17,7 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
 
     init {
         body = convertRawContentToStructure()
+        appendRequiredImports()
     }
 
     /**
@@ -55,6 +56,14 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
 
     fun removeImports(importsToRemove: MutableList<String>) {
         body.imports.removeAll(importsToRemove)
+    }
+
+    fun appendRequiredImports() {
+        for (requiredImport: String in ConfigYate.getArray("REQUIRED_IMPORTS")) {
+            if (requiredImport !in this.body.imports) {
+                this.body.imports.add(requiredImport)
+            }
+        }
     }
 
     abstract fun appendImports(importsToAppend: MutableList<String>)

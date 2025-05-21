@@ -22,20 +22,36 @@ public class Main {
         PromptService.initialize();
     }
 
+    public static void generateTestForClass(String repositoryPath, String classPath) {
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        runner.generate(classPath, TestLevel.CLASS);
+        runner.close();
+    }
+
+    public static void fixOraclesInTest(String repositoryPath, String testClassPath) {
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        runner.fixOracles(testClassPath);
+        runner.close();
+    }
+
     public static void main(String[] args) throws IOException {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
-//        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/";
+        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/spot/Pay.java";
+        String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/spot/PayTest.java";
+        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
+//        generateTestForClass(repositoryPath, cut);
+        fixOraclesInTest(repositoryPath, testClassPath);
+        System.exit(0);
 ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
-//////        System.exit(0);
 ////
 ////        String outputDir = repositoryPath + "yate-java-tests/";
 //        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
 //        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
-//        System.exit(0);
+
 
         String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_binance-connector-java-2.0.0.csv";
 

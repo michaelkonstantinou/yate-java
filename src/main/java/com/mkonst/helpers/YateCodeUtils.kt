@@ -34,7 +34,7 @@ object YateCodeUtils {
 
     @JvmStatic
     fun replaceLineInList(lines: MutableList<String>, lineNumber: Int, oldValue: String, newValue: String): MutableList<String> {
-        lines[lineNumber] = lines[lineNumber].replace(oldValue, newValue)
+        lines[lineNumber] = lines[lineNumber].replaceFirst(oldValue, newValue)
 
         return lines
     }

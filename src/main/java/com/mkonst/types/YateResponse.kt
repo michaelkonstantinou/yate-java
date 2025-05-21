@@ -26,6 +26,7 @@ data class YateResponse(
         val newTestClassContainer: ClassContainer = JavaClassContainer(testClassContainer.className, newBodyContent)
         newTestClassContainer.body.packageName = testClassContainer.body.packageName
         newTestClassContainer.appendImports(testClassContainer.body.imports)
+        newTestClassContainer.appendRequiredImports()
         newTestClassContainer.paths = testClassContainer.paths.copy()
 
         testClassContainer = newTestClassContainer

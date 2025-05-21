@@ -82,11 +82,12 @@ class YateJavaRunner(
 
         // Output log: rule-based & llm exception oracle fixing
         val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
-        YateConsole.info("$errorsFixedExceptions fixed using the output log and rules")
+        YateConsole.info("$errorsFixedExceptions exception(or not) oracles fixed")
+        println(response.testClassContainer.body.imports)
         response.testClassContainer.toTestFile()
         removeNonCompilingTests(response)
 
-//        // Second agent based fixing (if enabled)
+        // Second agent based fixing (if enabled)
 //        val errorsFixedFromSecondAgent = yateOracleFixer.fixErrorsUsingSecondAgent(response)
 //        YateConsole.info("$errorsFixedFromSecondAgent fixed using the output log and the second agent")
 //        response.testClassContainer.toTestFile()

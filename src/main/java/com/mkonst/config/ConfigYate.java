@@ -29,4 +29,8 @@ public class ConfigYate {
 
         return joinedItems.split(",");
     }
+
+    public static boolean getBoolean(String name) {
+        return Boolean.parseBoolean(properties.getProperty(name));
+    }
 }
