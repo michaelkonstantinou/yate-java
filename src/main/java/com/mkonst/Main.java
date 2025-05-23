@@ -38,12 +38,12 @@ public class Main {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
-        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java";
+        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/spot/GiftCard.java";
         String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/spot/PayTest.java";
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
-//        generateTestForClass(repositoryPath, cut);
+        generateTestForClass(repositoryPath, cut);
 //        fixOraclesInTest(repositoryPath, testClassPath);
-//        System.exit(0);
+        System.exit(0);
 ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
 ////        String outputDir = repositoryPath + "yate-java-tests/";
@@ -113,7 +113,7 @@ public class Main {
         YateConsole.INSTANCE.info("Saving a new dataset file by the name: ");
         String newCsvFile = csvFile.replace(".csv", "_results_" + YateUtils.INSTANCE.timestamp() + ".csv");
         dataset.saveAs(newCsvFile);
-
+        dataset.printTotals();
 
     }
 }

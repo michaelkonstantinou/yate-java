@@ -10,9 +10,8 @@ import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 
 class YateSecondAgentOracleFixer(repositoryPath: String,
-                                 dependencyTool: String,
-                                 expectedTypesToIgnore: MutableList<String> = mutableListOf("java.lang.RuntimeException", "RuntimeException")
-): YateOracleFixer(repositoryPath, dependencyTool, expectedTypesToIgnore) {
+                                 dependencyTool: String
+): YateOracleFixer(repositoryPath, dependencyTool) {
     private var modelSecondFixer: ChatOpenAIModel = ChatOpenAIModel()
 
 //    override fun fixErrorsUsingModel(response: YateResponse): Int {

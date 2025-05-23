@@ -47,4 +47,25 @@ class EvaluationDataset(val file: String? = null) {
             }
         }
     }
+
+    fun printTotals() {
+        var totalRequests = 0
+        var totalGenerationTime = 0L
+        var totalGeneratedTests = 0
+
+        records.forEach { record ->
+            totalRequests += record.requests
+            totalGeneratedTests += record.generatedTests
+            totalGenerationTime += record.generationTime
+        }
+
+        val avgRequests = totalRequests / records.size
+        val avgGenerationTime = totalGenerationTime.toFloat() / records.size
+
+        println("Total Requests: $totalRequests")
+        println("Total Generated Tests: $totalGeneratedTests")
+        println("Total Generation Time: $totalGenerationTime")
+        println("Average Nr. Requests: $avgRequests")
+        println("Average Generation Time: $avgGenerationTime")
+    }
 }

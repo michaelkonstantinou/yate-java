@@ -26,7 +26,8 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
             generationPrompts.add(promptNonPublicMethods)
         }
 
-        // Append the prompt that asks the LLM to generate the tests
+        // Append the last prompts that verify 100% branch coverage and ask the LLM to generate the tests
+        generationPrompts.add(PromptService.get("identify_branch_coverage"))
         generationPrompts.add(PromptService.get("generate_tests"))
         val testClassName = cutContainer.className + "Test"
 

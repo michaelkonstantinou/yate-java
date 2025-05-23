@@ -75,6 +75,12 @@ class YateJavaRunner(
         // Make sure that the current test file, is also the one that reflects the test container's content
         response.testClassContainer.toTestFile()
 
+        // Exceptions to exclude depending on the iteration. At the beginning ignore Runtime and NullPointer
+        val exceptionsToExclude: MutableMap<Int, MutableList<String>> = mutableMapOf(
+            1 to mutableListOf("InvalidUseOfMatchersException", "RuntimeException", "NullPointerException"),
+            2 to mutableListOf("InvalidUseOfMatchersException", "RuntimeException", "NullPointerException"),
+            3 to mutableListOf("InvalidUseOfMatchersException"))
+
         // Output log: rule-based fixing
         for (i: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_ITERATIONS")) {
             YateConsole.debug("Fixing non-passing oracles #$i")
@@ -101,7 +107,7 @@ class YateJavaRunner(
             removeNonCompilingTests(response)
 
             // Output log: rule-based & llm exception oracle fixing
-            val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
+            val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response, exceptionsToExclude.getValue(i))
             YateConsole.info("$errorsFixedExceptions exception(or not) oracles fixed")
             response.testClassContainer.toTestFile()
             removeNonCompilingTests(response)

@@ -92,6 +92,7 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
 
     override fun copy(): ClassContainer {
         val newInstance: ClassContainer = JavaClassContainer(className, bodyContent)
+        newInstance.body = this.body.copy()
         newInstance.paths = this.paths.copy()
 
         return newInstance

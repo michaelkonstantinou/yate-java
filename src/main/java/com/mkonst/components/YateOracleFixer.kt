@@ -12,9 +12,7 @@ import com.mkonst.types.YateResponse
 import com.openai.errors.BadRequestException
 
 open class YateOracleFixer(protected var repositoryPath: String,
-                           protected var dependencyTool: String,
-                           protected var expectedTypesToIgnore: MutableList<String> = mutableListOf()
-): AbstractModelComponent()
+                           protected var dependencyTool: String): AbstractModelComponent()
 {
     protected val errorService: ErrorService = ErrorService(repositoryPath)
 
@@ -54,7 +52,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
      * NOTE: Depending on the component's configuration of expectedTypesToIgnore variable, certain exceptions are being
      * ignored and not fixed
      */
-    fun fixTestsThatThrowExceptions(response: YateResponse): Int {
+    fun fixTestsThatThrowExceptions(response: YateResponse, expectedTypesToIgnore: MutableList<String> = mutableListOf()): Int {
         // Step 1: Execute tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
 
@@ -75,7 +73,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
         for (error: OracleError in exceptionErrors) {
 
             // Check whether the OracleError's expected type is not in the ones to ignore
-            if (error.exceptionType in this.expectedTypesToIgnore) {
+            if (error.exceptionType in expectedTypesToIgnore) {
                 YateConsole.debug("Ignoring exception oracle: ${error.exceptionType}")
 
                 continue
