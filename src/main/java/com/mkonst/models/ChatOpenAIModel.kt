@@ -4,6 +4,7 @@ import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.exception.InvalidRequestException
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
@@ -114,12 +115,16 @@ class ChatOpenAIModel(model: String? = null) {
                 val completion: ChatCompletion = client.chatCompletion(chatCompletionRequest)
 
                 return completion.choices.first().message.content
+            } catch (e: InvalidRequestException) {
+                // On InvalidRequestException, inform the user but do not repeat the requests to the API
+                YateConsole.error("Invalid request exception thrown. Breaking request: ${e.message}")
+                return null
             } catch (e: Exception) {
                 if (e is BadRequestException) {
                     throw e
                 }
 
-                println("Exception thrown: ${e.javaClass}")
+                YateConsole.warning("Exception thrown: ${e.javaClass}")
             }
 
             YateConsole.error("An error occurred when asking the model for an answer (#$executedIterations)")
