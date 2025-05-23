@@ -97,7 +97,7 @@ class YateSecondAgentOracleFixer(repositoryPath: String,
     }
 
     private fun generateUsingModel(prompts: List<String>, response: YateResponse, conversation: MutableList<ChatMessage>? = null): Pair<Boolean, CodeResponse> {
-        val modelResponse: CodeResponse = model.ask(prompts, PromptService.get("system_oracle_fixer"), conversation)
+        val modelResponse: CodeResponse = model.ask(prompts, PromptService.get("system"), conversation)
         if (modelResponse.codeContent !== null) {
 
             // Verify that the model's response is compiling before updating the response object

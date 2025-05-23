@@ -38,12 +38,12 @@ public class Main {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
-        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/spot/Pay.java";
+        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/utils/signaturegenerator/RsaSignatureGenerator.java";
         String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/spot/PayTest.java";
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/";
 //        generateTestForClass(repositoryPath, cut);
-        fixOraclesInTest(repositoryPath, testClassPath);
-        System.exit(0);
+//        fixOraclesInTest(repositoryPath, testClassPath);
+//        System.exit(0);
 ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
 ////        String outputDir = repositoryPath + "yate-java-tests/";

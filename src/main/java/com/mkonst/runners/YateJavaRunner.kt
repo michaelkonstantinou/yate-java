@@ -76,28 +76,47 @@ class YateJavaRunner(
         response.testClassContainer.toTestFile()
 
         // Output log: rule-based fixing
-        val errorsFixedFromLog = yateOracleFixer.fixUsingOutput(response)
-        YateConsole.info("$errorsFixedFromLog fixed using the output log and rules")
-        response.testClassContainer.toTestFile()
+        for (i: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_ITERATIONS")) {
+            YateConsole.debug("Fixing non-passing oracles #$i")
 
-        // Output log: rule-based & llm exception oracle fixing
-        val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
-        YateConsole.info("$errorsFixedExceptions exception(or not) oracles fixed")
-        println(response.testClassContainer.body.imports)
-        response.testClassContainer.toTestFile()
-        removeNonCompilingTests(response)
+            val errorsFixedFromLog = yateOracleFixer.fixUsingOutput(response)
+            YateConsole.info("$errorsFixedFromLog fixed using the output log and rules")
+            response.testClassContainer.toTestFile()
 
-        // Second agent based fixing (if enabled)
-//        val errorsFixedFromSecondAgent = yateOracleFixer.fixErrorsUsingSecondAgent(response)
-//        YateConsole.info("$errorsFixedFromSecondAgent fixed using the output log and the second agent")
-//        response.testClassContainer.toTestFile()
-//        removeNonCompilingTests(response)
+            // LLM-based fixing for the whole class
+            var errorsFixedFromLLM = 0
+            for (j: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_USING_MODEL_ITERATIONS")) {
+                YateConsole.debug("Fixing oracles in class as whole, using model: #$j")
+                yateOracleFixer.fixClassErrorsUsingModel(response, j == 1)
+                response.testClassContainer.toTestFile()
 
-        // LLM-based fixing (if enabled)
-        val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
-        YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
-        response.testClassContainer.toTestFile()
-        removeNonCompilingTests(response)
+                if (!response.hasChanges) {
+                    break
+                }
+            }
+
+            if (response.hasChanges) {
+                errorsFixedFromLLM += 1
+            }
+            removeNonCompilingTests(response)
+
+            // Output log: rule-based & llm exception oracle fixing
+            val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response)
+            YateConsole.info("$errorsFixedExceptions exception(or not) oracles fixed")
+            response.testClassContainer.toTestFile()
+            removeNonCompilingTests(response)
+
+            // LLM-based fixing (if enabled)
+//            val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
+//            YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
+//            response.testClassContainer.toTestFile()
+//            removeNonCompilingTests(response)
+
+            // No need to fix oracles if non have been found/fixed so far
+            if (errorsFixedExceptions + errorsFixedFromLLM + errorsFixedFromLog <= 0) {
+                break
+            }
+        }
 
         removeNonPassingTests(response)
 

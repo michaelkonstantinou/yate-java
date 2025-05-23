@@ -1,1 +1,1 @@
-The following is a class that is missing unit tests. Please identify how many tests are needed per method in order to achieve 100% branch coverage. Your last line should be "Total number of tests: X" (Where X place the number of tests needed)
+The following is a class that is missing unit tests. Please identify how many tests are needed per method in order to achieve 100% code coverage. Your last line should be "Total number of tests: X" (Where X place the number of tests needed)

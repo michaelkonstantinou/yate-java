@@ -230,12 +230,16 @@ class JavaInvocationsAnalyzer(val repositoryPath: String) {
 
         if (expectedParams.size != arguments.size) return false
 
-        if (!arguments.isEmpty() && arguments[0].toString() == "any()") return true
+        if (arguments.isNotEmpty() && arguments[0].toString() == "any()") return true
 
         for (i in expectedParams.indices) {
             val expectedType = expectedParams[i]
             val providedType = arguments[i].type
-            if ((providedType == null || !providedType.isSubtypeOf(expectedType)) && providedType.toString() != "<nulltype>") {
+            if (providedType === null) {
+                return false
+            }
+
+            if (!providedType.isSubtypeOf(expectedType) && providedType.toString() != "<nulltype>") {
                 return false
             }
         }

@@ -9,6 +9,7 @@ import com.mkonst.types.CodeResponse
 import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
+import com.openai.errors.BadRequestException
 
 open class YateOracleFixer(protected var repositoryPath: String,
                            protected var dependencyTool: String,
@@ -48,6 +49,11 @@ open class YateOracleFixer(protected var repositoryPath: String,
         return nrErrorsFixed
     }
 
+    /**
+     * Creates an exception oracle in a test that already throws an exception. In other words it verifies the behaviour
+     * NOTE: Depending on the component's configuration of expectedTypesToIgnore variable, certain exceptions are being
+     * ignored and not fixed
+     */
     fun fixTestsThatThrowExceptions(response: YateResponse): Int {
         // Step 1: Execute tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
@@ -115,17 +121,14 @@ open class YateOracleFixer(protected var repositoryPath: String,
         YateConsole.debug("Cleaning up code after exception oracles")
         val newContent = YateJavaUtils.removeCodeAfterExceptionOracle(response.testClassContainer)
         response.recreateTestClassContainer(newContent)
-//        if (!cleanContentAfterExceptionOracles(response)) {
-//            YateConsole.error("Could not cleanup code after execution oracles. Reverting changes")
-//            response.testClassContainer = testClassWithoutChanges
-//            response.hasChanges = false
-//
-//            return 0
-//        }
 
         return nrErrorsFixed
     }
 
+    /**
+     * Attempts to fix all oracles, line by line using the model. It doesn't provide the whole class to the LLM, only
+     * the oracle that is failing
+     */
     open fun fixErrorsUsingModel(response: YateResponse): Int {
         // Step 1: Execute tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
@@ -160,6 +163,35 @@ open class YateOracleFixer(protected var repositoryPath: String,
         }
 
         return nrErrorsFixed
+    }
+
+    /**
+     * Attempts to fix the error logs of the WHOLE CLASS, using the model, in a similar way
+     * YATE fixes non-compiling errors
+     */
+    fun fixClassErrorsUsingModel(response: YateResponse, includeClassCodeInPrompt: Boolean = true): YateResponse {
+        val errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, true)
+
+        if (errors === null) {
+            response.hasChanges = false
+
+            return response
+        }
+
+        // Use the model and attempt to fix the errors based on the error log provided from execution
+        val promptVars = hashMapOf("CLASS_CONTENT" to response.testClassContainer.getCompleteContent(), "ERRORS" to errors)
+        val promptInstruction: String = if (includeClassCodeInPrompt) "fix_errors" else "fix_errors_no_class_code"
+        val prompts = mutableListOf<String>(PromptService.get(promptInstruction, promptVars))
+
+        val modelResponse: CodeResponse = model.ask(prompts, history = response.conversation)
+
+        // Update the history of the chat conversation only if the model responded with a valid code content
+        if (modelResponse.codeContent !== null) {
+            response.recreateTestClassContainer(modelResponse.codeContent)
+            response.conversation = modelResponse.conversation
+        }
+
+        return response
     }
 
     private fun fixLineUsingOutputLog(
