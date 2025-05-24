@@ -1,7 +1,6 @@
 package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
-import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.*
 import com.mkonst.providers.ClassContainerProvider
@@ -158,23 +157,6 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         fixOraclesInTestClass(response)
     }
 
-    /**
-     * Attempts to remove failing tests. Depending on the testType, this can either be non-compiling tests
-     * or non-passing tests
-     */
-    fun removeFailingTests(testClassPath: String, testType: TestErrorType) {
-        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
-        val response = YateResponse(testContainer, mutableListOf())
-
-        if (testType === TestErrorType.NON_COMPILING) {
-            removeNonCompilingTests(response)
-        } else if (testType === TestErrorType.NON_PASSING) {
-            removeNonPassingTests(response)
-        } else {
-            throw Exception("Test type not supported for removing failing tests")
-        }
-    }
-
     abstract fun generateTestsForClass(cutContainer: ClassContainer, testLevel: TestLevel): YateResponse
 
     abstract fun generateTestsForMethod(cutContainer: ClassContainer, methodUnderTest: String): YateResponse
@@ -197,8 +179,7 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
 
         if (!classRelatedInvalidTests.isNullOrEmpty()) {
             YateConsole.debug("$classRelatedInvalidTests tests must be removed as they do not compile")
-            // todo: check whether the language is java or kotlin
-            val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+            val newContent: String = YateCodeUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests, lang)
 
             response.recreateTestClassContainer(newContent)
             response.testClassContainer.toTestFile()
@@ -220,10 +201,8 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         val classRelatedInvalidTests = nonPassingTests[response.testClassContainer.className]
 
         if (!classRelatedInvalidTests.isNullOrEmpty()) {
-            YateConsole.debug("$classRelatedInvalidTests tests are being removed as they do not pass")
-
-            // todo: check whether the language is java or kotlin
-            val newContent: String = YateJavaUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests)
+            YateConsole.debug("${classRelatedInvalidTests.size} tests are being removed as they do not pass")
+            val newContent: String = YateCodeUtils.removeMethodsInClass(response.testClassContainer.paths.testClass ?: "", classRelatedInvalidTests, lang)
 
             response.recreateTestClassContainer(newContent)
             response.testClassContainer.toTestFile()

@@ -72,7 +72,9 @@ class ChatOpenAIModel(model: String? = null) {
 
             runBlocking {
                 answer = executeRequest(conversation, ConfigYate.getInteger("MAX_REPEAT_FAILED_API_ITERATIONS"))
-                conversation.add(ChatMessage(ChatRole.Assistant, answer))
+                if (answer !== null) {
+                    conversation.add(ChatMessage(ChatRole.Assistant, answer))
+                }
             }
         }
 

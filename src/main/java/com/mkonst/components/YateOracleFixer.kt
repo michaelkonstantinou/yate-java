@@ -21,7 +21,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
      *
      * Returns the number of errors found and attempted to fix (potentially fixed as well)
      */
-    fun fixUsingOutput(response: YateResponse): Int {
+    fun fixUsingOutput(response: YateResponse): Pair<Int, Boolean> {
         // Step 1: Execute tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
 
@@ -29,7 +29,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
         if (errors === null) {
             response.hasChanges = false
 
-            return 0
+            return Pair(0, false)
         }
 
         // Step 2: Scan for error-message patterns and fix lines that fall into them
@@ -44,7 +44,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
             }
         }
 
-        return nrErrorsFixed
+        return Pair(nrErrorsFixed, true)
     }
 
     /**
@@ -52,7 +52,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
      * NOTE: Depending on the component's configuration of expectedTypesToIgnore variable, certain exceptions are being
      * ignored and not fixed
      */
-    fun fixTestsThatThrowExceptions(response: YateResponse, expectedTypesToIgnore: MutableList<String> = mutableListOf()): Int {
+    fun fixTestsThatThrowExceptions(response: YateResponse, expectedTypesToIgnore: MutableList<String> = mutableListOf()): Pair<Int, Boolean> {
         // Step 1: Execute tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
 
@@ -60,7 +60,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
         if (errors === null) {
             response.hasChanges = false
 
-            return 0
+            return Pair(0, false)
         }
 
         // Create a copy to allow reverting if needed
@@ -112,7 +112,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
 
         // Once all errors are fixed, ask the LLM to remove all lines after the exception oracles
         if (nrErrorsFixed == 0) {
-            return 0
+            return Pair(0, true)
         }
 
         // Clean up content using LLM: If fails, then revert back to the test class container without any changes
@@ -120,7 +120,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
         val newContent = YateJavaUtils.removeCodeAfterExceptionOracle(response.testClassContainer)
         response.recreateTestClassContainer(newContent)
 
-        return nrErrorsFixed
+        return Pair(nrErrorsFixed, false)
     }
 
     /**
@@ -166,14 +166,16 @@ open class YateOracleFixer(protected var repositoryPath: String,
     /**
      * Attempts to fix the error logs of the WHOLE CLASS, using the model, in a similar way
      * YATE fixes non-compiling errors
+     *
+     * Returns whether the error service initially returned errors or not
      */
-    fun fixClassErrorsUsingModel(response: YateResponse, includeClassCodeInPrompt: Boolean = true): YateResponse {
+    fun fixClassErrorsUsingModel(response: YateResponse, includeClassCodeInPrompt: Boolean = true): Boolean {
         val errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, true)
 
         if (errors === null) {
             response.hasChanges = false
 
-            return response
+            return false
         }
 
         // Use the model and attempt to fix the errors based on the error log provided from execution
@@ -189,7 +191,7 @@ open class YateOracleFixer(protected var repositoryPath: String,
             response.conversation = modelResponse.conversation
         }
 
-        return response
+        return true
     }
 
     private fun fixLineUsingOutputLog(
@@ -215,7 +217,13 @@ open class YateOracleFixer(protected var repositoryPath: String,
             val expected = errorLogItem.expectedValue ?: return response
             val actual = errorLogItem.actualValue ?: return response
 
-            // Replace original value with actual
+            // Replace original value with actual (if the actual value is not an enormous chunk of data)
+            if (actual.length > 500) {
+                YateConsole.info("Actual value in line ${errorLogItem.lineNumber} is enormous and is skipped")
+
+                return response
+            }
+
             YateConsole.info("Changing line ${errorLogItem.lineNumber}: Value $expected will change to $actual")
             YateCodeUtils.replaceLineInList(codeLinesWithChanges, lineToChange, expected, YateUtils.sanitizeString(actual))
 

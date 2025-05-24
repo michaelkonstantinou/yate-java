@@ -177,6 +177,11 @@ object YateJavaUtils {
         }
     }
 
+    /**
+     * Scans the error lines of a test execution log and checks whether any messages match an
+     * ambiguous reference type of error. Returns a list of all line numbers and class names that
+     * triggered this error
+     */
     fun findAmbiguousReferences(errorLog: String): List<Pair<String, String>> {
         val pattern = Regex(""":\[(\d+),\d+] reference to (\w+) is ambiguous""")
         val results = mutableListOf<Pair<String, String>>()

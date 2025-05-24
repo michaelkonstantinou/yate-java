@@ -76,16 +76,13 @@ class YateJavaRunner(
         response.testClassContainer.toTestFile()
 
         // Exceptions to exclude depending on the iteration. At the beginning ignore Runtime and NullPointer
-        val exceptionsToExclude: MutableMap<Int, MutableList<String>> = mutableMapOf(
-            1 to mutableListOf("InvalidUseOfMatchersException", "RuntimeException", "NullPointerException"),
-            2 to mutableListOf("InvalidUseOfMatchersException", "RuntimeException", "NullPointerException"),
-            3 to mutableListOf("InvalidUseOfMatchersException"))
+        val exceptionsToExclude = mutableListOf("InvalidUseOfMatchersException")
 
         // Output log: rule-based fixing
         for (i: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_ITERATIONS")) {
             YateConsole.debug("Fixing non-passing oracles #$i")
 
-            val errorsFixedFromLog = yateOracleFixer.fixUsingOutput(response)
+            var (errorsFixedFromLog, hadErrors) = yateOracleFixer.fixUsingOutput(response)
             YateConsole.info("$errorsFixedFromLog fixed using the output log and rules")
             response.testClassContainer.toTestFile()
 
@@ -93,10 +90,10 @@ class YateJavaRunner(
             var errorsFixedFromLLM = 0
             for (j: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_USING_MODEL_ITERATIONS")) {
                 YateConsole.debug("Fixing oracles in class as whole, using model: #$j")
-                yateOracleFixer.fixClassErrorsUsingModel(response, j == 1)
+                hadErrors = yateOracleFixer.fixClassErrorsUsingModel(response, j == 1)
                 response.testClassContainer.toTestFile()
 
-                if (!response.hasChanges) {
+                if (!hadErrors) {
                     break
                 }
             }
@@ -107,19 +104,15 @@ class YateJavaRunner(
             removeNonCompilingTests(response)
 
             // Output log: rule-based & llm exception oracle fixing
-            val errorsFixedExceptions = yateOracleFixer.fixTestsThatThrowExceptions(response, exceptionsToExclude.getValue(i))
+            val errorsFixedAndConsole = yateOracleFixer.fixTestsThatThrowExceptions(response, exceptionsToExclude)
+            val errorsFixedExceptions = errorsFixedAndConsole.first
+            hadErrors = errorsFixedAndConsole.second
             YateConsole.info("$errorsFixedExceptions exception(or not) oracles fixed")
             response.testClassContainer.toTestFile()
             removeNonCompilingTests(response)
 
-            // LLM-based fixing (if enabled)
-//            val errorsFixedFromLLM = yateOracleFixer.fixErrorsUsingModel(response)
-//            YateConsole.info("$errorsFixedFromLLM fixed using the output log and the LLM")
-//            response.testClassContainer.toTestFile()
-//            removeNonCompilingTests(response)
-
-            // No need to fix oracles if non have been found/fixed so far
-            if (errorsFixedExceptions + errorsFixedFromLLM + errorsFixedFromLog <= 0) {
+            // No need to fix oracles if there had been no errors in the last iterations
+            if (!hadErrors) {
                 break
             }
         }

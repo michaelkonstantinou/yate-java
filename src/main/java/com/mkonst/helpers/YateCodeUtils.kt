@@ -1,5 +1,6 @@
 package com.mkonst.helpers
 
+import com.mkonst.types.ProgramLangType
 import java.io.File
 
 object YateCodeUtils {
@@ -37,6 +38,16 @@ object YateCodeUtils {
         lines[lineNumber] = lines[lineNumber].replaceFirst(oldValue, newValue)
 
         return lines
+    }
+
+    /**
+     *  Reads the context of the given class, and returns a new modified version with the given methods removed
+     */
+    fun removeMethodsInClass(classPath: String, methods: MutableSet<String>, lang: ProgramLangType): String {
+        return when(lang) {
+            ProgramLangType.JAVA -> YateJavaUtils.removeMethodsInClass(classPath, methods)
+            ProgramLangType.KOTLIN -> throw NotImplementedError("removeMethodsInClass function is not supported for kotlin")
+        }
     }
 
     private fun findCommonRootPackage(packageNames: Set<String>): String {
