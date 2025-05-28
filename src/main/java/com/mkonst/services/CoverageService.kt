@@ -1,12 +1,76 @@
 package com.mkonst.services
 
-import com.mkonst.types.MethodCoverage
+import com.mkonst.helpers.YateIO
+import com.mkonst.types.coverage.BranchCoverage
+import com.mkonst.types.coverage.MethodCoverage
+import com.mkonst.types.coverage.MissingCoverage
 import org.jsoup.Jsoup
-import java.io.File
 import java.nio.file.Paths
+import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Element
 
 object CoverageService {
 
+    fun getMissingCoverageFromJacoco(repositoryPath: String, className: String? = null): List<MissingCoverage> {
+        val xmlFile = Paths.get(repositoryPath, "/target/site/jacoco/jacoco.xml").toFile()
+        if (!xmlFile.exists()) throw IllegalArgumentException("Coverage file not found: $xmlFile")
+
+        val factory = DocumentBuilderFactory.newInstance()
+
+        // Disable DTD loading to avoid "report.dtd" error
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+        factory.isValidating = false
+        factory.isNamespaceAware = false
+
+        val builder = factory.newDocumentBuilder()
+        val doc = builder.parse(xmlFile)
+        doc.documentElement.normalize()
+
+        val missingCoveragePerClass = mutableListOf<MissingCoverage>()
+        val sourceFileNodes = doc.getElementsByTagName("sourcefile")
+        for (i in 0 until sourceFileNodes.length) {
+            val elSourceFile = sourceFileNodes.item(i) as Element
+            val sourceFileName = YateIO.getNameWithoutExtension(elSourceFile.getAttribute("name"))
+            val missingCoverage = MissingCoverage(key = sourceFileName)
+
+            // Filter out source files with different class name (if specified)
+            if (className !== null && className != sourceFileName) {
+                continue
+            }
+            // Find missing lines and branches and append accordingly to list of results
+            val lines = elSourceFile.getElementsByTagName("line")
+            for (k in 0 until lines.length) {
+                val line = lines.item(k) as Element
+                val lineNumber = line.getAttribute("nr").toInt()
+                val cb = line.getAttribute("cb").toInt()
+                val mi = line.getAttribute("mi").toInt()
+                val missedBranches = line.getAttribute("mb").toInt()
+
+                if (missedBranches > 0) {
+                    missingCoverage.missedBranches.add(BranchCoverage(lineNumber, missedBranches, coveredBranches = cb))
+                }
+
+                if (mi > 0) {
+                    missingCoverage.missedLines.add(lineNumber.toString())
+                }
+            }
+
+            // Append to the list of missing coverage only if branch/line coverage is not fully covered
+            if (!missingCoverage.isFullyBranchCovered() || !missingCoverage.isFullyLineCovered()) {
+                missingCoverage.mergeMissedLines()
+                missingCoveragePerClass.add(missingCoverage)
+            }
+        }
+
+        return missingCoveragePerClass
+    }
+
+    /**
+     * Reads the jacoco html file for a specific class and returns a list of MethodCoverage instances that contain
+     * information about methods with less than 100% branch coverage
+     */
     fun getMissingCoverageForClass(repositoryPath: String, classQualifiedName: String): List<MethodCoverage> {
         val results: MutableList<MethodCoverage> = mutableListOf()
 
@@ -31,14 +95,14 @@ object CoverageService {
             }
 
             // Branch coverage: may be absent
-            val missedBranches = cols[3].select("img[alt]").firstOrNull { it.attr("src").contains("redbar") }
-                ?.attr("alt")?.toIntOrNull()
+            val missedBranches: Int = cols[3].select("img[alt]").firstOrNull { it.attr("src").contains("redbar") }
+                ?.attr("alt")?.toIntOrNull() ?: 0
 
             // Coverage %
             val coveragePercent: Float = cols[2].text().trim().replace("%", "").toFloat()
 
-            if (coveragePercent < 100) {
-                results.add(MethodCoverage(methodName, coveragePercent, missedBranches ?: 0))
+            if (coveragePercent < 100 || missedBranches > 0) {
+                results.add(MethodCoverage(methodName, coveragePercent, missedBranches))
             } else {
                 null
             }

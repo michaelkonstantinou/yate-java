@@ -16,7 +16,8 @@ class JavaClassParserTest {
             "",                                  // blank line
             "import ",                          // invalid
             "import com.valid.Class;",             // valid
-            "import okhttp3.Request\$Builder"
+            "import okhttp3.Request\$Builder",
+            "import // Ensure this import is correct import com.looks.good;" // invalid
         )
 
         val expected = listOf(

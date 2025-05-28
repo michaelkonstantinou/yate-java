@@ -7,6 +7,7 @@ import com.mkonst.providers.ClassContainerProvider
 import com.mkonst.services.CoverageService
 import com.mkonst.services.ErrorService
 import com.mkonst.types.*
+import com.mkonst.types.coverage.MethodCoverage
 import java.io.File
 
 abstract class YateAbstractRunner(protected open val repositoryPath: String, val lang: ProgramLangType = ProgramLangType.JAVA, private val outputDirectory: String? = null) {

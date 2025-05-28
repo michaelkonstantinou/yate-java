@@ -35,6 +35,9 @@ class JavaClassParser: CodeClassParserInterface {
 
             // 3. Class declaration + body: We'll rebuild it by removing package/imports and fixing minor typos
             classBody = getCleanBodyContent(classContent.trim(), packageName, imports)
+
+            // Filter out import statements that are invalid (but somehow the parser did not catch them
+            imports = filterInvalidImports(imports)
         } catch (e: CannotParseCodeException) {
 
             // Try to decode code using regex

@@ -32,6 +32,13 @@ object YateIO {
     }
 
     /**
+     * Returns the name of the file without its file extension (e.g. filename.java will return filename)
+     */
+    fun getNameWithoutExtension(name: String): String {
+        return name.substringBeforeLast(".")
+    }
+
+    /**
      * Removes the filename and its extension from the filepath to return the file's folder
      */
     fun getFolderFromPath(filepath: String): String {
