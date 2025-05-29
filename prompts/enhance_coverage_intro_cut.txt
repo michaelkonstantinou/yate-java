@@ -1,0 +1,5 @@
+The following is class that I generated test for. However, although my test cases are working, I fail to capture 100% code coverage
+
+Here is the class I am targeting
+
+%%CLASS_CONTENT%%

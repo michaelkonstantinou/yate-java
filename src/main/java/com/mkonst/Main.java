@@ -34,19 +34,24 @@ public class Main {
         runner.close();
     }
 
+    public static void enhanceCoverage(String repositoryPath, String cut, String testClassPath) {
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        runner.enhanceCoverage(cut, testClassPath);
+        runner.close();
+    }
+
     public static void main(String[] args) throws IOException {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
 
-//        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/spot/Market.java";
-        String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/spot/PayTest.java";
+        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/util/AntPathMatcher.java";
+        String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java";
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/";
-        System.out.println(CoverageService.INSTANCE.getMissingCoverageFromJacoco(repositoryPath, "AntPathMatcher"));
-        System.exit(0);
-//        generateTestForClass(repositoryPath, cut);
+//        enhanceCoverage(repositoryPath, cut, testClassPath);
+        generateTestForClass(repositoryPath, cut);
 //        fixOraclesInTest(repositoryPath, testClassPath);
-//        System.exit(0);
+        System.exit(0);
 ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
 ////        String outputDir = repositoryPath + "yate-java-tests/";

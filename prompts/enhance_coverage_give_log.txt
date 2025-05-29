@@ -1,0 +1,6 @@
+I provide below the branches that are not fully covered and my existing test class
+
+%%LOG%%
+
+// Test class
+%%TEST_CLASS_CONTENT%%

@@ -13,6 +13,9 @@ data class MissingCoverage(
         return missedBranches.isEmpty()
     }
 
+    /**
+     * Merges sequential line numbers to be grouped together as a single string (e.g. [1, 2, 3, 6] to [1-3, 6])
+     */
     fun mergeMissedLines() {
         if (missedLines.size < 2) {
             return
@@ -34,6 +37,4 @@ data class MissingCoverage(
 
         missedLines = newMissedLineList
     }
-
-    // ResourcePluginProxy 38-43, 45, 47-48
 }

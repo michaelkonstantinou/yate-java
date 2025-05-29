@@ -2,14 +2,12 @@ package com.mkonst.components
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.helpers.*
-import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.ErrorService
 import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
-import com.openai.errors.BadRequestException
 
 open class YateOracleFixer(protected var repositoryPath: String,
                            protected var dependencyTool: String): AbstractModelComponent()
@@ -225,12 +223,12 @@ open class YateOracleFixer(protected var repositoryPath: String,
             }
 
             YateConsole.info("Changing line ${errorLogItem.lineNumber}: Value $expected will change to $actual")
-            YateCodeUtils.replaceLineInList(codeLinesWithChanges, lineToChange, expected, YateUtils.sanitizeString(actual))
+            YateCodeUtils.replaceOracleInLines(codeLinesWithChanges, lineToChange, expected, YateUtils.sanitizeString(actual))
 
             // Handle fully qualified expected values (e.g., java.lang.Exception)
             val expectedValueParts = expected.split(".")
             if (expectedValueParts.size > 1) {
-                YateCodeUtils.replaceLineInList(codeLinesWithChanges, lineToChange, expectedValueParts.last(), actual)
+                YateCodeUtils.replaceOracleInLines(codeLinesWithChanges, lineToChange, expectedValueParts.last(), actual)
             }
         }
 

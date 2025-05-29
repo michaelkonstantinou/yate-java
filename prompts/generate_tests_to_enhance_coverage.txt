@@ -1,0 +1,2 @@
+Please generate the tests you propose in a new test class called %%CLASS_NAME%%.
+Respond only with the code.

@@ -2,10 +2,7 @@ package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.java.JavaImportsAnalyzer
-import com.mkonst.components.YateOracleFixer
-import com.mkonst.components.YateSecondAgentOracleFixer
-import com.mkonst.components.YateUnitGenerator
-import com.mkonst.components.YateUnitTestFixer
+import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
@@ -25,6 +22,7 @@ class YateJavaRunner(
     private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
     private var yateTestFixer: YateUnitTestFixer
     private var yateOracleFixer: YateOracleFixer
+    private val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath)
     private val importsAnalyzer: JavaImportsAnalyzer
 
     init {
@@ -120,6 +118,14 @@ class YateJavaRunner(
         removeNonPassingTests(response)
 
         return response
+    }
+
+    override fun enhanceCoverageForClass(
+        cutContainer: ClassContainer,
+        testClassContainer: ClassContainer
+    ): YateResponse? {
+        YateConsole.debug("Enhancing branch coverage for class ${cutContainer.className}, based on test ${testClassContainer.className}")
+        return yateCoverageEnhancer.generateTestsForBranchCoverage(cutContainer, testClassContainer)
     }
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {

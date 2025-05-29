@@ -51,6 +51,7 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
 
                 if (!hasFailed) {
                     results.add(response)
+                    this.enhanceCoverage(classPath, response.testClassContainer.paths.testClass!!)?.let { results.add(it) }
                 }
             }
             TestLevel.CONSTRUCTOR -> {
@@ -88,7 +89,7 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
 
                 // Get uncovered methods and generate a test for each uncovered method
                 YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, true)
-                val uncoveredMethods = CoverageService.getMissingCoverageForClass(repositoryPath, cutContainer.getQualifiedName())
+                val uncoveredMethods = CoverageService.getNotFullyCoveredMethodsForClass(repositoryPath, cutContainer.getQualifiedName())
                 var hasUncoveredConstructors = false
 
                 for (method: MethodCoverage in uncoveredMethods) {
@@ -158,6 +159,24 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         fixOraclesInTestClass(response)
     }
 
+    fun enhanceCoverage(classPath: String, testClassPath: String): YateResponse? {
+        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
+        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
+
+        val response = enhanceCoverageForClass(cutContainer, testContainer)
+        if (response === null) {
+            return null
+        }
+
+        val hasFailed = onValidation(cutContainer, response)
+
+        if (!hasFailed) {
+            return response
+        }
+
+        return null
+    }
+
     abstract fun generateTestsForClass(cutContainer: ClassContainer, testLevel: TestLevel): YateResponse
 
     abstract fun generateTestsForMethod(cutContainer: ClassContainer, methodUnderTest: String): YateResponse
@@ -165,6 +184,8 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
     abstract fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse
 
     abstract fun fixOraclesInTestClass(response: YateResponse): YateResponse
+
+    abstract fun enhanceCoverageForClass(cutContainer: ClassContainer, testClassContainer: ClassContainer): YateResponse?
 
     abstract fun close()
 

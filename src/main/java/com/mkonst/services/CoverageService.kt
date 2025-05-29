@@ -11,7 +11,13 @@ import org.w3c.dom.Element
 
 object CoverageService {
 
-    fun getMissingCoverageFromJacoco(repositoryPath: String, className: String? = null): List<MissingCoverage> {
+    fun getMissingCoverageForClass(repositoryPath: String, className: String? = null): MissingCoverage? {
+        val missingCoverages = getMissingCoverage(repositoryPath, className)
+
+        return missingCoverages.firstOrNull()
+    }
+
+    fun getMissingCoverage(repositoryPath: String, className: String? = null): List<MissingCoverage> {
         val xmlFile = Paths.get(repositoryPath, "/target/site/jacoco/jacoco.xml").toFile()
         if (!xmlFile.exists()) throw IllegalArgumentException("Coverage file not found: $xmlFile")
 
@@ -71,7 +77,7 @@ object CoverageService {
      * Reads the jacoco html file for a specific class and returns a list of MethodCoverage instances that contain
      * information about methods with less than 100% branch coverage
      */
-    fun getMissingCoverageForClass(repositoryPath: String, classQualifiedName: String): List<MethodCoverage> {
+    fun getNotFullyCoveredMethodsForClass(repositoryPath: String, classQualifiedName: String): List<MethodCoverage> {
         val results: MutableList<MethodCoverage> = mutableListOf()
 
         val className = classQualifiedName.substringAfterLast(".")

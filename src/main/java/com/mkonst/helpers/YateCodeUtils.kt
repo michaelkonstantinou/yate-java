@@ -34,9 +34,24 @@ object YateCodeUtils {
     }
 
     @JvmStatic
-    fun replaceLineInList(lines: MutableList<String>, lineNumber: Int, oldValue: String, newValue: String): MutableList<String> {
-        lines[lineNumber] = lines[lineNumber].replaceFirst(oldValue, newValue)
+    fun replaceOracleInLines(lines: MutableList<String>, lineNumber: Int, oldValue: String, newValue: String): MutableList<String> {
+        println("BEFORE: ${lines[lineNumber]}")
+        val assertion = getAssertFunction(lines[lineNumber])
+        println("Replacing oracle: Assertion is $assertion, newValue is $newValue")
+        when {
+            assertion.contains("assertTrue") && newValue == "false" -> {
+                lines[lineNumber] = lines[lineNumber].replaceFirst("assertTrue", "assertFalse")
+            }
+            assertion.contains("assertFalse") && newValue == "true" -> {
+                lines[lineNumber] = lines[lineNumber].replaceFirst("assertFalse", "assertTrue")
+            }
+            assertion.contains("assertNotNull") && newValue == "null" -> {
+                lines[lineNumber] = lines[lineNumber].replaceFirst("assertNotNull", "assertNull")
+            }
+            else -> lines[lineNumber] = lines[lineNumber].replaceFirst(oldValue, newValue)
+        }
 
+        println("AFTER: ${lines[lineNumber]}")
         return lines
     }
 
@@ -48,6 +63,16 @@ object YateCodeUtils {
             ProgramLangType.JAVA -> YateJavaUtils.removeMethodsInClass(classPath, methods)
             ProgramLangType.KOTLIN -> throw NotImplementedError("removeMethodsInClass function is not supported for kotlin")
         }
+    }
+
+    /**
+     * Given a single line of code, the function will return the name of the assertion that is being used or unknown
+     * if there is no assertion in place
+     *
+     * (e.g. assertTrue(myVar) -> assertTrue)
+     */
+    fun getAssertFunction(codeLine: String): String {
+        return codeLine.substringBefore("(", missingDelimiterValue = "unknown").trim()
     }
 
     private fun findCommonRootPackage(packageNames: Set<String>): String {
