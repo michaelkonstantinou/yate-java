@@ -11,12 +11,36 @@ import com.mkonst.types.coverage.MissingCoverage
 
 class YateCoverageEnhancer(private var repositoryPath: String): AbstractModelComponent() {
 
-    fun generateTestsForLineCoverage(cutContainer: ClassContainer, testClassContainer: ClassContainer) {}
+    /**
+     * Uses the CoverageService to find the missing code coverage of the given class.
+     * If the coverage missed even at least 1 line, it will attempt to generate a new test class to with
+     * tests to cover the missed lines
+     */
+    fun generateTestsForLineCoverage(cutContainer: ClassContainer, testClassContainer: ClassContainer): YateResponse? {
+        // Step 1: Find missing coverage in cutContainer
+        val missingCoverage: MissingCoverage? = CoverageService.getMissingCoverageForClass(repositoryPath, cutContainer.className)
+        if (missingCoverage === null || missingCoverage.isFullyLineCovered()) {
+            YateConsole.info("Enhancing line coverage is skipped as there are no missed lines for ${cutContainer.className}")
 
+            return null
+        }
+
+        // Step 2: Find which of them are not fully branch covered
+        val log = "// Uncovered Lines: " + missingCoverage.missedLines.toString()
+        val newTestClassName = testClassContainer.className.replace("Test", "") + "EnhancedLineCoverageTest"
+
+        return generateTestUsingModel(log, "lines", newTestClassName, cutContainer)
+    }
+
+    /**
+     * Uses the CoverageService to find the missing code coverage of the given class.
+     * If the coverage missed even at least 1 branch, it will attempt to generate a new test class to with
+     * tests to cover the missed branches
+     */
     fun generateTestsForBranchCoverage(cutContainer: ClassContainer, testClassContainer: ClassContainer): YateResponse? {
         // Step 1: Find missing coverage in cutContainer
         val missingCoverage: MissingCoverage? = CoverageService.getMissingCoverageForClass(repositoryPath, cutContainer.className)
-        if (missingCoverage === null) {
+        if (missingCoverage === null || missingCoverage.isFullyBranchCovered()) {
             YateConsole.info("Enhancing branch coverage is skipped as there are no missed branches for ${cutContainer.className}")
 
             return null
@@ -24,10 +48,26 @@ class YateCoverageEnhancer(private var repositoryPath: String): AbstractModelCom
 
         // Step 2: Find which of them are not fully branch covered
         val log = "// Uncovered Branches\n" + missingCoverage.missedBranches.toString()
-        val newTestClassName = testClassContainer.className.replace("Test", "") + "EnhancedCoverageTest"
-        val promptIntroduction = PromptService.get("enhance_coverage_intro_cut", hashMapOf("CLASS_CONTENT" to cutContainer.bodyContent))
-        val promptGiveLog = PromptService.get("enhance_coverage_give_log", hashMapOf("LOG" to log, "TEST_CLASS_CONTENT" to cutContainer.bodyContent))
-        val promptGenerate = PromptService.get("generate_tests_to_enhance_coverage", hashMapOf("CLASS_NAME" to newTestClassName))
+        val newTestClassName = testClassContainer.className.replace("Test", "") + "EnhancedBranchCoverageTest"
+
+        return generateTestUsingModel(log, "branches", newTestClassName, cutContainer)
+    }
+
+    /**
+     * Generates the prompts to feed to the model, and uses the model to generate a new test class
+     * In case the model fails to return a code, it returns null
+     * On success, it returns a new YateResponse instance with a new ClassContainer for the generated test class
+     */
+    private fun generateTestUsingModel(log: String, coverageType: String, newTestClassName: String, cutContainer: ClassContainer): YateResponse? {
+        val promptIntroduction = PromptService.get(
+            "enhance_coverage_intro_cut",
+            hashMapOf("CLASS_CONTENT" to cutContainer.bodyContent))
+        val promptGiveLog = PromptService.get(
+            "enhance_coverage_give_log",
+            hashMapOf("LOG" to log, "TEST_CLASS_CONTENT" to cutContainer.bodyContent, "COVERAGE_TYPE" to coverageType))
+        val promptGenerate = PromptService.get(
+            "generate_tests_to_enhance_coverage",
+            hashMapOf("CLASS_NAME" to newTestClassName))
 
         // Step 3: Generate Prompts
         val prompts = mutableListOf(promptIntroduction, promptGiveLog, promptGenerate)

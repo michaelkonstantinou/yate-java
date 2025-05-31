@@ -10,7 +10,11 @@ import com.mkonst.types.*
 import com.mkonst.types.coverage.MethodCoverage
 import java.io.File
 
-abstract class YateAbstractRunner(protected open val repositoryPath: String, val lang: ProgramLangType = ProgramLangType.JAVA, private val outputDirectory: String? = null) {
+abstract class YateAbstractRunner(
+    protected open val repositoryPath: String,
+    val lang: ProgramLangType = ProgramLangType.JAVA,
+    private val outputDirectory: String? = null,
+    private val requireGreenSuiteOnGeneration: Boolean = true) {
     protected var dependencyTool: String
     protected var packageName: String
     protected val errorService: ErrorService = ErrorService(repositoryPath)
@@ -37,9 +41,17 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
      * HYBRID -> Starts with Class-level testing, and the proceeds to selective method testing based on coverage
      */
     fun generate(classPath: String, testLevel: TestLevel = TestLevel.CLASS): MutableList<YateResponse> {
+        val results: MutableList<YateResponse> = mutableListOf()
+
+        // Verify that all tests pass (if enabled)
+        val isGreenSuite: Boolean = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true) === null
+        if (!isGreenSuite && requireGreenSuiteOnGeneration) {
+            YateConsole.error("Current setup of Runner required a green suite (all tests to pass) before starting the generation process")
+            return results
+        }
+
         val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
         var hasFailed: Boolean = false
-        val results: MutableList<YateResponse> = mutableListOf()
 
         // Depending on the selected test level, generate a new test class (Saved in YateResponse)
         when (testLevel) {

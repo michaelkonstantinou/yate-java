@@ -1,4 +1,4 @@
-I provide below the branches that are not fully covered and my existing test class
+I provide below the %%COVERAGE_TYPE%% that are not fully covered and my existing test class
 
 %%LOG%%
 
