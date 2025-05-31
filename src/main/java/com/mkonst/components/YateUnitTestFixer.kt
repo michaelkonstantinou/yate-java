@@ -30,10 +30,6 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
         }
     }
 
-    override fun closeConnection() {
-        model.closeConnection()
-    }
-
     /**
      * Runs the tests and stores its output into an error log. If the log is not empty, the method
      * uses the LLM to fix the tests that do not compile.

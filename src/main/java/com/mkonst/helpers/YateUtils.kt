@@ -20,7 +20,11 @@ object YateUtils {
      * The method will move the generate test file, to the specified outputDirectory.
      * If the given response object does not contain a valid test class path, the method will do nothing
      */
-    fun moveGeneratedTestClass(testClassContainer: ClassContainer, outputDirectory: String) {
+    fun moveGeneratedTestClass(testClassContainer: ClassContainer, outputDirectory: String? = null) {
+        if (outputDirectory === null) {
+            return
+        }
+
         val sourcePath: String? = testClassContainer.paths.testClass
         if (sourcePath !== null) {
             val directoriesAfterRepository: String = testClassContainer.paths.testClass!!.substringAfter("src/test").substringBefore(testClassContainer.className + testClassContainer.lang.extension)

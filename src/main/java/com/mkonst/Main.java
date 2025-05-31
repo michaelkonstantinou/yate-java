@@ -49,8 +49,8 @@ public class Main {
         String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java";
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/";
 //        enhanceCoverage(repositoryPath, cut, testClassPath);
-        generateTestForClass(repositoryPath, cut);
-//        fixOraclesInTest(repositoryPath, testClassPath);
+//        generateTestForClass(repositoryPath, cut);
+        fixOraclesInTest(repositoryPath, testClassPath);
         System.exit(0);
 ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////

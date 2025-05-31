@@ -37,7 +37,6 @@ object YateCodeUtils {
     fun replaceOracleInLines(lines: MutableList<String>, lineNumber: Int, oldValue: String, newValue: String): MutableList<String> {
         println("BEFORE: ${lines[lineNumber]}")
         val assertion = getAssertFunction(lines[lineNumber])
-        println("Replacing oracle: Assertion is $assertion, newValue is $newValue")
         when {
             assertion.contains("assertTrue") && newValue == "false" -> {
                 lines[lineNumber] = lines[lineNumber].replaceFirst("assertTrue", "assertFalse")
@@ -47,6 +46,9 @@ object YateCodeUtils {
             }
             assertion.contains("assertNotNull") && newValue == "null" -> {
                 lines[lineNumber] = lines[lineNumber].replaceFirst("assertNotNull", "assertNull")
+            }
+            assertion.contains("assertNull") && oldValue == "null" -> {
+                lines[lineNumber] = lines[lineNumber].replaceFirst("assertNull", "assertNotNull")
             }
             else -> lines[lineNumber] = lines[lineNumber].replaceFirst(oldValue, newValue)
         }

@@ -316,8 +316,4 @@ open class YateOracleFixer(protected var repositoryPath: String,
         // Content is not parsing and no updated have been done at this point
         return false
     }
-
-    fun closeConnection() {
-        this.model.closeConnection()
-    }
 }

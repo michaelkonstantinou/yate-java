@@ -51,8 +51,16 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
 
                 if (!hasFailed) {
                     results.add(response)
-                    this.enhanceCoverage(classPath, response.testClassContainer.paths.testClass!!)?.let { results.add(it) }
+                    val enhancedResponse: YateResponse? = this.enhanceCoverage(classPath, response.testClassContainer.paths.testClass!!)
+
+                    // Add enhanced response to results and remove generated test
+                    if (enhancedResponse !== null) {
+                        results.add(enhancedResponse)
+                    }
                 }
+
+                // Remove original generated test
+                YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
             }
             TestLevel.CONSTRUCTOR -> {
                 if (cutContainer.body.hasConstructors) {
@@ -169,10 +177,13 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
         }
 
         val hasFailed = onValidation(cutContainer, response)
+        YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
 
         if (!hasFailed) {
             return response
         }
+
+
 
         return null
     }
@@ -246,10 +257,6 @@ abstract class YateAbstractRunner(protected open val repositoryPath: String, val
             hasFailed = true
         } finally {
             response.save()
-        }
-
-        if (outputDirectory !== null) {
-            YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
         }
 
         return hasFailed

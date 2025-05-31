@@ -12,4 +12,8 @@ abstract class AbstractModelComponent {
     open fun resetNrRequests() {
         model.nrRequests = 0
     }
+
+    open fun closeConnection() {
+        this.model.closeConnection()
+    }
 }

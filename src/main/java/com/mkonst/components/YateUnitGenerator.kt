@@ -100,8 +100,4 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
 
         return YateResponse(testContainer, response.conversation)
     }
-
-    override fun closeConnection() {
-        this.model.closeConnection()
-    }
 }
