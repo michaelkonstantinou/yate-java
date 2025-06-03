@@ -15,7 +15,10 @@ class EvaluationDataset(val file: String? = null) {
                     repositoryPath = row["repositoryPath"]!!,
                     classPath = row["classPath"]!!,
                     testLevel = TestLevel.valueOf(row["testLevel"]!!.uppercase()),
-                    requests = row["requests"]?.toIntOrNull() ?: 0,
+                    requests = RequestsCounter(row["generationRequests"]?.toIntOrNull() ?: 0,
+                                        row["compilationFixRequests"]?.toIntOrNull() ?: 0,
+                                            row["oracleFixRequests"]?.toIntOrNull() ?: 0,
+                                    row["coverageEnhancementRequests"]?.toIntOrNull() ?: 0),
                     generationTime = row["generationTime"]?.toLongOrNull() ?: 0,
                     isExecuted = row["isExecuted"]?.toBoolean() ?: false,
                     errors = row["errors"],
@@ -28,7 +31,7 @@ class EvaluationDataset(val file: String? = null) {
     }
 
     fun saveAs(filename: String) {
-        val header = listOf("repositoryPath", "classPath", "testLevel", "requests", "generationTime", "isExecuted", "errors", "outputDir", "generatedTests")
+        val header = listOf("repositoryPath", "classPath", "testLevel", "generationRequests", "compilationFixRequests", "oracleFixRequests", "coverageEnhancementRequests", "fixRequests", "totalRequests", "generationTime", "isExecuted", "errors", "outputDir", "generatedTests")
 
         csvWriter().open(File(filename)) {
             writeRow(header)
@@ -37,7 +40,12 @@ class EvaluationDataset(val file: String? = null) {
                     record.repositoryPath,
                     record.classPath,
                     record.testLevel.name,
-                    record.requests,
+                    record.requests.generation,
+                    record.requests.compilationFixing,
+                    record.requests.oracleFixing,
+                    record.requests.coverageEnhancement,
+                    record.requests.totalFixing,
+                    record.requests.total,
                     record.generationTime,
                     record.isExecuted,
                     record.errors,
@@ -54,7 +62,7 @@ class EvaluationDataset(val file: String? = null) {
         var totalGeneratedTests = 0
 
         records.forEach { record ->
-            totalRequests += record.requests
+            totalRequests += record.requests.total
             totalGeneratedTests += record.generatedTests
             totalGenerationTime += record.generationTime
         }

@@ -1,36 +1,38 @@
-package com.mkonst.config;
+package com.mkonst.config
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
+import java.io.FileInputStream
+import java.io.IOException
+import java.util.*
 
-public class ConfigYate {
+object ConfigYate {
+    private var properties: Properties? = null
 
-    private static Properties properties;
-
-    public static void initialize() throws IOException {
-        properties = new Properties();
-        try (FileInputStream in = new FileInputStream(".env")) {
-            properties.load(in);
+    @JvmStatic
+    @Throws(IOException::class)
+    fun initialize(configFile: String = ".env") {
+        properties = Properties()
+        FileInputStream(configFile).use { `in` ->
+            properties!!.load(`in`)
         }
     }
 
-    public static String getString(String name) {
-        return properties.getProperty(name);
+    @JvmStatic
+    fun getString(name: String): String {
+        return properties!!.getProperty(name)
     }
 
-    public static int getInteger(String name) {
-        return Integer.parseInt(properties.getProperty(name));
+    @JvmStatic
+    fun getInteger(name: String): Int {
+        return properties!!.getProperty(name).toInt()
     }
 
-    public static String[] getArray(String name) {
-        String joinedItems = properties.getProperty(name);
+    fun getArray(name: String): Array<String> {
+        val joinedItems = properties!!.getProperty(name)
 
-        return joinedItems.split(",");
+        return joinedItems.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
     }
 
-    public static boolean getBoolean(String name) {
-        return Boolean.parseBoolean(properties.getProperty(name));
+    fun getBoolean(name: String): Boolean {
+        return properties!!.getProperty(name).toBoolean()
     }
 }

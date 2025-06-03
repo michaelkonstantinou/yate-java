@@ -4,6 +4,7 @@ import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
+import com.mkonst.evaluation.RequestsCounter
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
@@ -171,8 +172,12 @@ class YateJavaRunner(
         yateCoverageEnhancer.closeConnection()
     }
 
-    fun getNrRequests(): Int {
-        return yateGenerator.getNrRequests() + yateTestFixer.getNrRequests() + yateOracleFixer.getNrRequests() + yateCoverageEnhancer.getNrRequests()
+    fun getNrRequests(): RequestsCounter {
+        return RequestsCounter(
+            yateGenerator.getNrRequests(),
+            yateTestFixer.getNrRequests(),
+            yateOracleFixer.getNrRequests(),
+            yateCoverageEnhancer.getNrRequests())
     }
 
     fun resetNrRequests() {

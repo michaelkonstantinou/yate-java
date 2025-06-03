@@ -6,7 +6,7 @@ data class EvaluationDatasetRecord(
     val repositoryPath: String,
     val classPath: String,
     val testLevel: TestLevel,
-    var requests: Int,
+    var requests: RequestsCounter,
     var generationTime: Long,
     var isExecuted: Boolean,
     var errors: String?,

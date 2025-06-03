@@ -18,7 +18,7 @@ import java.util.List;
 public class Main {
 
     public static void initializeServices() throws IOException {
-        ConfigYate.initialize();
+        ConfigYate.initialize(".env");
         PromptService.initialize();
     }
 
@@ -44,14 +44,13 @@ public class Main {
         System.out.println("Running YATE (Java)");
         initializeServices();
 
-
         String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/util/AntPathMatcher.java";
         String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java";
         String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/";
 //        enhanceCoverage(repositoryPath, cut, testClassPath);
 //        generateTestForClass(repositoryPath, cut);
-        fixOraclesInTest(repositoryPath, testClassPath);
-        System.exit(0);
+//        fixOraclesInTest(repositoryPath, testClassPath);
+//        System.exit(0);
 ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
 ////        String outputDir = repositoryPath + "yate-java-tests/";
