@@ -13,13 +13,15 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateConsole
+import com.mkonst.interfaces.ChatModel
 import com.mkonst.types.CodeResponse
+import com.mkonst.types.exceptions.EmptyPromptsInRequestException
 import com.openai.errors.BadRequestException
 import io.ktor.client.network.sockets.*
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 
-class ChatOpenAIModel(model: String? = null) {
+class ChatOpenAIModel(model: String? = null): ChatModel {
     var nrRequests: Int = 0
     private lateinit var model: String
     private var client: OpenAI
@@ -53,10 +55,10 @@ class ChatOpenAIModel(model: String? = null) {
      * If history is given, the request will firstly contain the history and then the prompt requests
      * If system prompt is given (and history is not given), the first message will be the provided system prompt
      */
-    fun ask(prompts: List<String>, systemPrompt: String? = null, history: MutableList<ChatMessage>? = null): CodeResponse {
+    override fun ask(prompts: List<String>, systemPrompt: String?, history: MutableList<ChatMessage>?): CodeResponse {
         // Make sure the prompts given contains data
         if (prompts.isEmpty()) {
-            throw Exception("Prompt list cannot be empty when making an API request")
+            throw EmptyPromptsInRequestException()
         }
 
         // Initialize conversation. Do not append the system prompt (even if given), if history is present
@@ -81,7 +83,7 @@ class ChatOpenAIModel(model: String? = null) {
         return CodeResponse(answer, conversation)
     }
 
-    fun closeConnection() {
+    override fun closeConnection() {
         client.close()
     }
 

@@ -83,6 +83,9 @@ abstract class YateAbstractRunner(
                     if (!hasFailed) {
                         results.add(response)
                     }
+
+                    // Remove original generated test
+                    YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
                 }
             }
             TestLevel.METHOD -> {
@@ -102,6 +105,9 @@ abstract class YateAbstractRunner(
                     if (!hasFailed) {
                         results.add(response)
                     }
+
+                    // Remove original generated test
+                    YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
                 }
             }
             TestLevel.HYBRID -> {

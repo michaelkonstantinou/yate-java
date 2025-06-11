@@ -17,6 +17,16 @@ object ConfigYate {
     }
 
     @JvmStatic
+    fun setValue(name: String, value: String) {
+        properties!!.setProperty(name, value)
+    }
+
+    @JvmStatic
+    fun getStringOrNull(name: String): String? {
+        return if (properties!!.keys.contains(name)) properties!!.getProperty(name) else null
+    }
+
+    @JvmStatic
     fun getString(name: String): String {
         return properties!!.getProperty(name)
     }

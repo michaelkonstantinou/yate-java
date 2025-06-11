@@ -5,6 +5,7 @@ import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.RequestsCounter
+import com.mkonst.evaluation.ablation.ExcludeSummarisationRunner
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
@@ -20,7 +21,7 @@ class YateJavaRunner(
     private val includeOracleFixing: Boolean = true,
     outputDirectory: String? = null
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
-    private val yateGenerator: YateUnitGenerator = YateUnitGenerator()
+    private val yateGenerator: YateUnitGenerator = ExcludeSummarisationRunner()
     private var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
     private var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
     private val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath)

@@ -1,0 +1,3 @@
+The following class is missing unit tests. Please generate all tests needed to achieve 100% code coverage using %%TEST_FRAMEWORK%%. Return only the code
+
+%%CLASS_CONTENT%%

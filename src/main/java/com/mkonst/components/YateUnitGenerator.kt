@@ -7,7 +7,7 @@ import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 
-class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
+open class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
 
     /**
      * Generates the Unit Test cases at a class-level. It requires a ClassContainer instance of the class under test
@@ -57,7 +57,7 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
         return generateTestUsingModel(systemPrompt, generationPrompts, cutContainer, testClassName)
     }
 
-    private fun getPromptForNonPublicMethod(cutContainer: ClassContainer): String? {
+    protected fun getPromptForNonPublicMethod(cutContainer: ClassContainer): String? {
         var promptNonPublic: String = PromptService.get("specify_private_and_protected_methods")
 
         val privateMethods = cutContainer.getPrivateMethods()
@@ -84,7 +84,7 @@ class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
      *
      * Returns a YateResponse instance, that contains the generated Class Container and the interaction with the model
      */
-    private fun generateTestUsingModel(systemPrompt: String,
+    protected fun generateTestUsingModel(systemPrompt: String,
                                        generationPrompts: MutableList<String>,
                                        cutContainer: ClassContainer,
                                        newTestClassName: String): YateResponse {

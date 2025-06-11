@@ -1,5 +1,6 @@
 package com.mkonst.components
 
+import com.mkonst.config.ConfigYate
 import com.mkonst.models.ChatOpenAIModel
 
 /**
