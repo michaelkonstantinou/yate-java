@@ -14,14 +14,22 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.TimeUnit
 
 class ChatOllamaModel(private val model: String): ChatModel {
-    var nrRequests: Int = 0
+    override var nrRequests: Int = 0
     private val ollamaChatUrl = ConfigYate.getString("OLLAMA_CHAT_URL")
     private val jsonParser = Json {
         ignoreUnknownKeys = true
     }
 
+    /**
+     * Executes a request to the model, decodes the result into a code snippet and returns its value
+     * Requires a list of prompts. Each prompt will be sent to the model, save its result and repeat for all elements
+     * in the prompt list
+     * If history is given, the request will firstly contain the history and then the prompt requests
+     * If system prompt is given (and history is not given), the first message will be the provided system prompt
+     */
     override fun ask(prompts: List<String>, systemPrompt: String?, history: MutableList<ChatMessage>?): CodeResponse {
         // Make sure the prompts given contains data
         if (prompts.isEmpty()) {
@@ -53,8 +61,17 @@ class ChatOllamaModel(private val model: String): ChatModel {
         // Client has no open connection
     }
 
+    /**
+     * The method will execute a request to the Ollama model and return only its message content (if successful)
+     * For unsuccessful requests the method returns null
+     */
     private fun executeRequest(conversation: MutableList<ChatMessage>): String? {
-        val client = OkHttpClient()
+        val client = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.MINUTES)
+            .readTimeout(10, TimeUnit.MINUTES)   // useful for long Ollama responses
+            .writeTimeout(10, TimeUnit.MINUTES)
+            .build()
+
         val requestBodyJson = Json.encodeToString(
             OllamaChatRequest(
                 model = model,
@@ -73,8 +90,6 @@ class ChatOllamaModel(private val model: String): ChatModel {
         client.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
                 val responseAsString = response.body?.string()
-                println("Response: ${responseAsString}")
-
                 val parsed = jsonParser.decodeFromString<OllamaChatResponse>(responseAsString!!)
 
                 return parsed.message.content

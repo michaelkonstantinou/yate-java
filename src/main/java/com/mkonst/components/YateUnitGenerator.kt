@@ -7,7 +7,7 @@ import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 
-open class YateUnitGenerator : AbstractModelComponent(), YateUnitGeneratorInterface {
+open class YateUnitGenerator(modelName: String? = null) : AbstractModelComponent(modelName), YateUnitGeneratorInterface {
 
     /**
      * Generates the Unit Test cases at a class-level. It requires a ClassContainer instance of the class under test

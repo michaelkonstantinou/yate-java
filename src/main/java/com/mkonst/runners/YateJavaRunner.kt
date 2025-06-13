@@ -16,15 +16,16 @@ import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 import java.io.File
 
-class YateJavaRunner(
+open class YateJavaRunner(
     repositoryPath: String,
     private val includeOracleFixing: Boolean = true,
-    outputDirectory: String? = null
+    outputDirectory: String? = null,
+    modelName: String? = null
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
-    private val yateGenerator: YateUnitGenerator = ExcludeSummarisationRunner()
-    private var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool)
-    private var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool)
-    private val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath)
+    protected val yateGenerator: YateUnitGenerator = ExcludeSummarisationRunner()
+    protected var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool, modelName)
+    protected var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
+    protected val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath, modelName)
     private val importsAnalyzer: JavaImportsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
 
     /**
@@ -227,7 +228,7 @@ class YateJavaRunner(
     /**
      * Returns whether the repository contains any compilation errors when the test suite is run
      */
-    private fun isCompiling(): Boolean {
+    protected fun isCompiling(): Boolean {
         return YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool) === null
     }
 

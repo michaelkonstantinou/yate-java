@@ -24,6 +24,7 @@ class JavaClassParser: CodeClassParserInterface {
         var packageName: String?
         var imports: MutableList<String>
         var classBody: String
+
         try {
             compilationUnit = parseContent(classContent)
 
@@ -73,6 +74,8 @@ class JavaClassParser: CodeClassParserInterface {
         val result = parser.parse(classContent)
 
         if (!result.isSuccessful || !result.result.isPresent) {
+            println(classContent)
+            println(result.problems)
             throw CannotParseCodeException()
         }
 

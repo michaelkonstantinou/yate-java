@@ -9,7 +9,7 @@ import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 import com.mkonst.types.coverage.MissingCoverage
 
-class YateCoverageEnhancer(private var repositoryPath: String): AbstractModelComponent() {
+class YateCoverageEnhancer(private var repositoryPath: String, modelName: String? = null): AbstractModelComponent(modelName) {
 
     /**
      * Uses the CoverageService to find the missing code coverage of the given class.

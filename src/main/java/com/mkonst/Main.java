@@ -24,19 +24,19 @@ public class Main {
     }
 
     public static void generateTestForClass(String repositoryPath, String classPath) {
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null, "qwen3:14b");
         runner.generate(classPath, TestLevel.CLASS);
         runner.close();
     }
 
     public static void fixOraclesInTest(String repositoryPath, String testClassPath) {
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null, null);
         runner.fixOracles(testClassPath);
         runner.close();
     }
 
     public static void enhanceCoverage(String repositoryPath, String cut, String testClassPath) {
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
+        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null, null);
         runner.enhanceCoverage(cut, testClassPath);
         runner.close();
     }
@@ -61,13 +61,13 @@ public class Main {
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
 
-        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_event-ruler_class.csv";
+        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_windward_class_no-summary-.csv";
 
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
 
         int recordSize = dataset.getRecords().size();
         int index = 0;
-        YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir());
+        YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir(), null);
         for(EvaluationDatasetRecord record: dataset.getRecords()) {
             index += 1;
 
@@ -81,7 +81,7 @@ public class Main {
             while (hasFailed && i < ConfigYate.getInteger("MAX_REPEAT_FAILED_ITERATIONS")) {
                 i++;
 
-                System.out.println("Iterating class (" + index + "/" + recordSize + " (#" + i + "): " + record.getClassPath());
+                System.out.println("Iterating class (" + index + "/" + recordSize + ") (#" + i + "): " + record.getClassPath());
                 var startTime = System.currentTimeMillis();
 
                 try {

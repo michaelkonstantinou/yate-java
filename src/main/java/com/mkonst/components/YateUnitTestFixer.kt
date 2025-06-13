@@ -18,7 +18,7 @@ import com.mkonst.types.CodeResponse
 import com.mkonst.types.YateResponse
 import com.openai.errors.BadRequestException
 
-class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String): AbstractModelComponent(), YateUnitTestFixerInterface {
+class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String, modelName: String? = null): AbstractModelComponent(modelName), YateUnitTestFixerInterface {
     private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
     private val invocationsAnalyzer: JavaInvocationsAnalyzer = JavaInvocationsAnalyzer(repositoryPath)
     private val methodProvider: JavaMethodProvider = JavaMethodProvider(repositoryPath)
@@ -39,8 +39,11 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
      *
      * The flag include_cut_code determines whether the prompt should include the current test implementation.
      * If this method is called subsequently then it might be wise to turn it off for optimization.
+     *
+     * @param includeErrorExtension If method is called using includeErrorExtension, then the method will attempt to
+     * decode the error log and find potential fixes (e.g. ambiguous references)
      */
-    fun fixTestsFromErrorLog(response: YateResponse, includeClassCodeInPrompt: Boolean = true): YateResponse {
+    fun fixTestsFromErrorLog(response: YateResponse, includeClassCodeInPrompt: Boolean = true, includeErrorExtension: Boolean = true): YateResponse {
         var errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool)
 
         if (errors === null) {
@@ -50,13 +53,15 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
         }
 
         // Find ambiguous references. Append them to the end of the error log (if any) but DO NOT execute another prompt
-        val ambiguousReferences = YateJavaUtils.findAmbiguousReferences(errors)
-        if (ambiguousReferences.isNotEmpty()) {
-            var references = ""
-            for (reference: Pair<String, String> in ambiguousReferences) {
-                references += "In line ${reference.first} a new ${reference.second} instance is instantiated but it is ambiguous which raises an error.\n"
+        if (includeErrorExtension) {
+            val ambiguousReferences = YateJavaUtils.findAmbiguousReferences(errors)
+            if (ambiguousReferences.isNotEmpty()) {
+                var references = ""
+                for (reference: Pair<String, String> in ambiguousReferences) {
+                    references += "In line ${reference.first} a new ${reference.second} instance is instantiated but it is ambiguous which raises an error.\n"
+                }
+                errors += "\n\n" + PromptService.get("fix_ambiguous_references", hashMapOf("REFERENCES" to references))
             }
-            errors += "\n\n" + PromptService.get("fix_ambiguous_references", hashMapOf("REFERENCES" to references))
         }
 
         // Use the model and attempt to fix the errors based on the error log provided from execution

@@ -10,7 +10,8 @@ import com.mkonst.types.TestErrorLog
 import com.mkonst.types.YateResponse
 
 open class YateOracleFixer(protected var repositoryPath: String,
-                           protected var dependencyTool: String): AbstractModelComponent()
+                           protected var dependencyTool: String,
+                           modelName: String? = null): AbstractModelComponent(modelName)
 {
     protected val errorService: ErrorService = ErrorService(repositoryPath)
 

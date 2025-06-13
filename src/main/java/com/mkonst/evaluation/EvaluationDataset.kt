@@ -58,11 +58,19 @@ class EvaluationDataset(val file: String? = null) {
 
     fun printTotals() {
         var totalRequests = 0
+        var totalGenerationRequests = 0
+        var totalCompilingFixingRequests = 0
+        var totalOracleFixingRequests = 0
+        var totalCoverageEnhanceRequests = 0
         var totalGenerationTime = 0L
         var totalGeneratedTests = 0
 
         records.forEach { record ->
             totalRequests += record.requests.total
+            totalGenerationRequests += record.requests.generation
+            totalCompilingFixingRequests += record.requests.compilationFixing
+            totalOracleFixingRequests += record.requests.oracleFixing
+            totalCoverageEnhanceRequests += record.requests.coverageEnhancement
             totalGeneratedTests += record.generatedTests
             totalGenerationTime += record.generationTime
         }
@@ -71,6 +79,10 @@ class EvaluationDataset(val file: String? = null) {
         val avgGenerationTime = totalGenerationTime.toFloat() / records.size
 
         println("Total Requests: $totalRequests")
+        println("Total Generation Requests: $totalGenerationRequests")
+        println("Total Compiling fixing Requests: $totalCompilingFixingRequests")
+        println("Total Oracle fixing Requests: $totalOracleFixingRequests")
+        println("Total Coverage enhancement Requests: $totalCoverageEnhanceRequests")
         println("Total Generated Tests: $totalGeneratedTests")
         println("Total Generation Time: $totalGenerationTime")
         println("Average Nr. Requests: $avgRequests")

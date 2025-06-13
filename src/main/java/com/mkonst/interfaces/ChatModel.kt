@@ -4,6 +4,7 @@ import com.aallam.openai.api.chat.ChatMessage
 import com.mkonst.types.CodeResponse
 
 interface ChatModel {
+    var nrRequests: Int
 
     /**
      * Executes a request to the model, decodes the result into a code snippet and returns its value

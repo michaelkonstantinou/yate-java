@@ -45,4 +45,23 @@ object ConfigYate {
     fun getBoolean(name: String): Boolean {
         return properties!!.getProperty(name).toBoolean()
     }
+
+    /**
+     * Returns a human friendly text with a list of all variables and their values
+     */
+    fun dump(): String {
+        val value = StringBuilder()
+        value.appendLine("YATE CONFIGURATION")
+        value.appendLine("------------------")
+
+        if (properties == null) {
+            value.appendLine("-> No configuration properties found.")
+        } else {
+            properties!!.forEach { (key, varValue) ->
+                value.appendLine("-> $key = $varValue")
+            }
+        }
+
+        return value.toString()
+    }
 }

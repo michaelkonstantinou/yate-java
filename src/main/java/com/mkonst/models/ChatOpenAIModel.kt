@@ -17,12 +17,11 @@ import com.mkonst.interfaces.ChatModel
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.exceptions.EmptyPromptsInRequestException
 import com.openai.errors.BadRequestException
-import io.ktor.client.network.sockets.*
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.seconds
 
 class ChatOpenAIModel(model: String? = null): ChatModel {
-    var nrRequests: Int = 0
+    override var nrRequests: Int = 0
     private lateinit var model: String
     private var client: OpenAI
 
