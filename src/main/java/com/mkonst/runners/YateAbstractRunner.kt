@@ -2,6 +2,7 @@ package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.config.ConfigYate
+import com.mkonst.config.ConfigYate.getInteger
 import com.mkonst.helpers.*
 import com.mkonst.providers.ClassContainerProvider
 import com.mkonst.services.CoverageService
@@ -189,19 +190,22 @@ abstract class YateAbstractRunner(
         val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
         val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
 
-        val response = enhanceCoverageForClass(cutContainer, testContainer)
-        if (response === null) {
-            return null
+        var hasFailed: Boolean
+        var i = 0
+        while (i < ConfigYate.getInteger("MAX_REPEAT_FAILED_ITERATIONS")) {
+            i++
+            val response = enhanceCoverageForClass(cutContainer, testContainer)
+            if (response === null) {
+                hasFailed = true
+            } else {
+                hasFailed = onValidation(cutContainer, response)
+                YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
+            }
+
+            if (!hasFailed) {
+                return response
+            }
         }
-
-        val hasFailed = onValidation(cutContainer, response)
-        YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
-
-        if (!hasFailed) {
-            return response
-        }
-
-
 
         return null
     }

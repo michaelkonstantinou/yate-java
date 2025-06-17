@@ -2,7 +2,6 @@ package com.mkonst.evaluation.ablation
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.components.YateUnitGenerator
-import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateConsole
 import com.mkonst.runners.YateJavaRunner
 import com.mkonst.types.TestLevel
@@ -17,6 +16,15 @@ class YateAblationRunner(repositoryPath: String,
                          private val hasOracleFixComponent: Boolean = true,
                          private val hasCoverageEnhancementComponent: Boolean = true) : YateJavaRunner(repositoryPath, includeOracleFixing, outputDirectory, modelName) {
     private val simpleGenerator: YateUnitGenerator = ExcludeSummarisationRunner()
+
+    init {
+        YateConsole.debug("Active components:")
+        YateConsole.debug("--> Generation: $hasGenerationComponent")
+        YateConsole.debug("--> Compilation fixing: $hasCompilationFixingComponent")
+        YateConsole.debug("--> Oracle fixing: $hasOracleFixComponent")
+        YateConsole.debug("--> Coverage Enhancement: $hasCoverageEnhancementComponent")
+    }
+
     override fun generateTestsForClass(cutContainer: ClassContainer, testLevel: TestLevel): YateResponse {
         if (hasGenerationComponent) {
             return super.generateTestsForClass(cutContainer, testLevel)

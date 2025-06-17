@@ -22,7 +22,7 @@ open class YateJavaRunner(
     outputDirectory: String? = null,
     modelName: String? = null
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
-    protected val yateGenerator: YateUnitGenerator = ExcludeSummarisationRunner()
+    protected val yateGenerator: YateUnitGenerator = YateUnitGenerator(modelName)
     protected var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool, modelName)
     protected var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
     protected val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath, modelName)
@@ -71,7 +71,7 @@ open class YateJavaRunner(
         response.testClassContainer.toTestFile()
 
         // Exceptions to exclude depending on the iteration. At the beginning ignore Runtime and NullPointer
-        val exceptionsToExclude = mutableListOf("InvalidUseOfMatchersException")
+        val exceptionsToExclude = mutableListOf("InvalidUseOfMatchersException", "MockitoException", "")
 
         // Output log: rule-based fixing
         for (i: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_ITERATIONS")) {

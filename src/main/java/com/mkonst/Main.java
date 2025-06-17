@@ -61,7 +61,7 @@ public class Main {
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
 
-        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_windward_class_no-summary-.csv";
+        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_aws-secretsmanager-jdbc_class_.csv";
 
         EvaluationDataset dataset = new EvaluationDataset(csvFile);
 
@@ -98,13 +98,15 @@ public class Main {
                     record.setExecuted(true);
                     record.setRequests(runner.getNrRequests());
 
+                    int generatedTests = 0;
                     for (YateResponse response: responses) {
-                        int generatedTests = YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer());
-                        if (generatedTests <= 0) {
-                            throw new Exception("Failed to generate tests. Re-run");
-                        }
+                        generatedTests += YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer());
                         record.addGeneratedTests(generatedTests);
                     }
+                    if (generatedTests <= 0) {
+                        throw new Exception("Failed to generate tests. Re-run");
+                    }
+
                     hasFailed = false;
                 } catch (Exception e) {
                     record.setErrors(e.getMessage());
