@@ -273,6 +273,9 @@ abstract class YateAbstractRunner(
 
             fixOraclesInTestClass(response)
             response.testClassContainer.toTestFile()
+
+            // It is still consider a failure if no tests are present in a test class
+            hasFailed = YateJavaUtils.countTestMethods(response.testClassContainer) <= 0
         } catch (e: Exception) {
             YateConsole.error("An error occurred when generating/fixing tests!")
             YateConsole.error(e.message ?: "")

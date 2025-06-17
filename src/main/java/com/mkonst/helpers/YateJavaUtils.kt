@@ -10,6 +10,7 @@ import com.github.javaparser.ast.stmt.BlockStmt
 import com.github.javaparser.ast.stmt.Statement
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.types.MethodPosition
 import java.io.File
 
 object YateJavaUtils {
@@ -268,5 +269,28 @@ object YateJavaUtils {
         }
 
         return cu.toString()
+    }
+
+    /**
+     * Uses the JavaParser to find the starting and ending line of every method within the given class
+     * Returns a list of MethodPosition instances
+     */
+    fun extractMethodPositions(classContent: String): List<MethodPosition> {
+        val parser = JavaParser()
+        val cu: CompilationUnit = parser.parse(classContent).result.orElseThrow()
+
+        val methodPositions = mutableListOf<MethodPosition>()
+
+        cu.findAll(MethodDeclaration::class.java).forEach { method ->
+            val range = method.range.orElse(null)
+            if (range != null) {
+                val name = method.nameAsString
+                val startLine = range.begin.line
+                val endLine = range.end.line
+                methodPositions.add(MethodPosition(name, startLine, endLine))
+            }
+        }
+
+        return methodPositions
     }
 }
