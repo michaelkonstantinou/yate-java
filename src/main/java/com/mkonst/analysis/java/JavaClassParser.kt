@@ -74,9 +74,7 @@ class JavaClassParser: CodeClassParserInterface {
         val result = parser.parse(classContent)
 
         if (!result.isSuccessful || !result.result.isPresent) {
-            println(classContent)
-            println(result.problems)
-            throw CannotParseCodeException()
+            throw CannotParseCodeException(result.problems.toString())
         }
 
         val compilationUnit: CompilationUnit = result.result.get()
@@ -177,7 +175,7 @@ class JavaClassParser: CodeClassParserInterface {
     /**
      * Returns a new list of import statements that filtered out statements that won't compile in a java environment
      */
-    private fun filterInvalidImports(imports: List<String>): MutableList<String> {
+    fun filterInvalidImports(imports: List<String>): MutableList<String> {
         val cleanImports: MutableList<String> = mutableListOf()
 
         for (import: String in imports) {

@@ -4,6 +4,7 @@ import com.mkonst.analysis.ClassContainer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.helpers.YateConsole
 import com.mkonst.runners.YateJavaRunner
+import com.mkonst.types.MethodPosition
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 
@@ -75,9 +76,9 @@ class YateAblationRunner(repositoryPath: String,
      * Ablation Study: Depending on the hasCoverageEnhancementComponent the method will either execute the
      * default YATE coverage enhancement process or return null
      */
-    override fun enhanceCoverageForClass(cutContainer: ClassContainer, testClassContainer: ClassContainer): YateResponse? {
+    override fun enhanceCoverageForClass(cutContainer: ClassContainer, testClassContainer: ClassContainer, methodPosition: MethodPosition?): YateResponse? {
         if (hasCoverageEnhancementComponent) {
-            return super.enhanceCoverageForClass(cutContainer, testClassContainer)
+            return super.enhanceCoverageForClass(cutContainer, testClassContainer, methodPosition)
         }
 
         return null

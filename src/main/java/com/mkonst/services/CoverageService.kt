@@ -1,6 +1,7 @@
 package com.mkonst.services
 
 import com.mkonst.helpers.YateIO
+import com.mkonst.types.MethodPosition
 import com.mkonst.types.coverage.BranchCoverage
 import com.mkonst.types.coverage.MethodCoverage
 import com.mkonst.types.coverage.MissingCoverage
@@ -17,7 +18,13 @@ object CoverageService {
         return missingCoverages.firstOrNull()
     }
 
-    fun getMissingCoverage(repositoryPath: String, className: String? = null): List<MissingCoverage> {
+    fun getMissingCoverageForMethod(repositoryPath: String, className: String, methodPosition: MethodPosition): MissingCoverage? {
+        val missingCoverages = getMissingCoverage(repositoryPath, className, methodPosition)
+
+        return missingCoverages.firstOrNull()
+    }
+
+    fun getMissingCoverage(repositoryPath: String, className: String? = null, methodPosition: MethodPosition? = null): List<MissingCoverage> {
         val xmlFile = Paths.get(repositoryPath, "/target/site/jacoco/jacoco.xml").toFile()
         if (!xmlFile.exists()) throw IllegalArgumentException("Coverage file not found: $xmlFile")
 
@@ -45,11 +52,18 @@ object CoverageService {
             if (className !== null && className != sourceFileName) {
                 continue
             }
+
             // Find missing lines and branches and append accordingly to list of results
             val lines = elSourceFile.getElementsByTagName("line")
             for (k in 0 until lines.length) {
                 val line = lines.item(k) as Element
                 val lineNumber = line.getAttribute("nr").toInt()
+
+                // Filter out missing lines/branches outside the given method position
+                if (methodPosition !== null && lineNumber !in methodPosition.startLine..methodPosition.endLine) {
+                    continue
+                }
+
                 val cb = line.getAttribute("cb").toInt()
                 val mi = line.getAttribute("mi").toInt()
                 val missedBranches = line.getAttribute("mb").toInt()

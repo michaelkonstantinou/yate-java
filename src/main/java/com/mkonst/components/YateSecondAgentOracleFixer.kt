@@ -7,10 +7,11 @@ import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
+import com.mkonst.types.DependencyTool
 import com.mkonst.types.YateResponse
 
 class YateSecondAgentOracleFixer(repositoryPath: String,
-                                 dependencyTool: String
+                                 dependencyTool: DependencyTool
 ): YateOracleFixer(repositoryPath, dependencyTool) {
     private var modelSecondFixer: ChatOpenAIModel = ChatOpenAIModel()
 

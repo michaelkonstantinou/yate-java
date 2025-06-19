@@ -1,6 +1,7 @@
 package com.mkonst.runners
 
 import com.mkonst.analysis.ClassContainer
+import com.mkonst.analysis.java.JavaClassParser
 import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
@@ -11,6 +12,7 @@ import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.services.ErrorService
+import com.mkonst.types.MethodPosition
 import com.mkonst.types.ProgramLangType
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
@@ -27,6 +29,7 @@ open class YateJavaRunner(
     protected var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
     protected val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath, modelName)
     private val importsAnalyzer: JavaImportsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
+    private val parser: JavaClassParser = JavaClassParser()
 
     /**
      * Generates unit tests regarding a given class. Depending on the test-level, the method will generate tests
@@ -119,14 +122,15 @@ open class YateJavaRunner(
 
     override fun enhanceCoverageForClass(
         cutContainer: ClassContainer,
-        testClassContainer: ClassContainer
+        testClassContainer: ClassContainer,
+        methodPosition: MethodPosition?
     ): YateResponse? {
         try {
             YateConsole.debug("Enhancing branch coverage for class ${cutContainer.className}, based on test ${testClassContainer.className}")
 
             // Execute tests before attempting to enhance coverage
             isCompiling()
-            return yateCoverageEnhancer.generateTestsForBranchCoverage(cutContainer, testClassContainer)
+            return yateCoverageEnhancer.generateTestsForBranchCoverage(cutContainer, testClassContainer, methodPosition)
         } catch (e: Exception) {
             return null
         }
@@ -197,6 +201,16 @@ open class YateJavaRunner(
      * Returns whether such import statements have been found
      */
     private fun removeInvalidImports(response: YateResponse): Boolean {
+        // Filter out invalid import statements
+        val originalNumberOfImports = response.testClassContainer.body.imports.size
+        response.testClassContainer.setImports(parser.filterInvalidImports(response.testClassContainer.body.imports))
+        val newNumberOfImports = response.testClassContainer.body.imports.size
+
+        if (originalNumberOfImports - newNumberOfImports > 0) {
+            YateConsole.debug("${originalNumberOfImports - newNumberOfImports} imports were filtered out due to wrong syntax")
+        }
+
+        // Filter out import statements that do not belong to the package (but follow the same prefix)
         val invalidImports: MutableList<String> = importsAnalyzer.getInvalidPackageImports(response.testClassContainer.body.imports)
 
         if (invalidImports.size > 0) {
@@ -206,7 +220,7 @@ open class YateJavaRunner(
             return true
         }
 
-        return false
+        return originalNumberOfImports > newNumberOfImports
     }
 
     /**

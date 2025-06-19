@@ -1,5 +1,6 @@
 package com.mkonst.helpers
 
+import com.mkonst.types.DependencyTool
 import com.mkonst.types.OracleError
 import java.io.BufferedReader
 import java.io.File
@@ -12,10 +13,10 @@ object YateJavaExecution {
      * Depending on the flag includeCompilingTests, the method will either return the compilation errors, or the
      * errors from a compiling suite.
      */
-    fun runTestsForErrors(repositoryPath: String, dependencyTool: String, includeCompilingTests: Boolean = false): String? {
+    fun runTestsForErrors(repositoryPath: String, dependencyTool: DependencyTool, includeCompilingTests: Boolean = false): String? {
         return when (dependencyTool) {
-            "maven" -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
-            "gradle" -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
+            DependencyTool.MAVEN -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
+            DependencyTool.GRADLE -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
             else -> throw Exception("Dependency tool $dependencyTool is not supported")
         }
     }
@@ -69,9 +70,9 @@ object YateJavaExecution {
      * @param errorLine The error message string.
      * @return A Map with extracted values or null if no match is found.
      */
-    fun parseFailedTestLine(errorLine: String, dependencyTool: String): OracleError? {
+    fun parseFailedTestLine(errorLine: String, dependencyTool: DependencyTool): OracleError? {
         return when (dependencyTool) {
-            "maven" -> parseFailedTestLineMaven(errorLine)
+            DependencyTool.MAVEN -> parseFailedTestLineMaven(errorLine)
 //            "gradle" -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
             else -> throw Exception("Dependency tool $dependencyTool is not supported")
         }

@@ -58,6 +58,13 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
         body.imports.removeAll(importsToRemove)
     }
 
+    /**
+     * Replaces all import statements with the given ones
+     */
+    fun setImports(imports: MutableList<String>) {
+        body.imports = imports
+    }
+
     fun appendRequiredImports() {
         for (requiredImport: String in ConfigYate.getArray("REQUIRED_IMPORTS")) {
             if (requiredImport !in this.body.imports) {

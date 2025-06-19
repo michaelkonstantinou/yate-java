@@ -15,10 +15,11 @@ import com.mkonst.services.MethodCallGraphProvider
 import com.mkonst.services.PromptService
 import com.mkonst.types.ClassMethod
 import com.mkonst.types.CodeResponse
+import com.mkonst.types.DependencyTool
 import com.mkonst.types.YateResponse
 import com.openai.errors.BadRequestException
 
-class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: String, modelName: String? = null): AbstractModelComponent(modelName), YateUnitTestFixerInterface {
+class YateUnitTestFixer(private var repositoryPath: String, private var packageName: String, private var dependencyTool: DependencyTool, modelName: String? = null): AbstractModelComponent(modelName), YateUnitTestFixerInterface {
     private val argumentsAnalyzer: JavaArgumentsAnalyzer = JavaArgumentsAnalyzer(repositoryPath, packageName)
     private val invocationsAnalyzer: JavaInvocationsAnalyzer = JavaInvocationsAnalyzer(repositoryPath)
     private val methodProvider: JavaMethodProvider = JavaMethodProvider(repositoryPath)

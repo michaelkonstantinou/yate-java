@@ -3,7 +3,9 @@ package com.mkonst.helpers
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mkonst.analysis.ClassContainer
+import com.mkonst.types.DependencyTool
 import com.mkonst.types.YateResponse
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -60,5 +62,14 @@ object YateUtils {
 
         // Return quoted and escaped version of plain strings
         return input
+    }
+
+    /**
+     * Returns the dependency tool used for the given repository based on the files that exist in the repository.
+     */
+    fun getDependencyTool(repositoryPath: String): DependencyTool {
+        val pomFile = File(repositoryPath, "pom.xml")
+
+        return if (pomFile.exists() && pomFile.isFile) DependencyTool.MAVEN else DependencyTool.GRADLE
     }
 }

@@ -275,20 +275,25 @@ object YateJavaUtils {
      * Uses the JavaParser to find the starting and ending line of every method within the given class
      * Returns a list of MethodPosition instances
      */
-    fun extractMethodPositions(classContent: String): List<MethodPosition> {
-        val parser = JavaParser()
-        val cu: CompilationUnit = parser.parse(classContent).result.orElseThrow()
-
+    fun extractMethodPositions(classContent: String): MutableList<MethodPosition> {
         val methodPositions = mutableListOf<MethodPosition>()
 
-        cu.findAll(MethodDeclaration::class.java).forEach { method ->
-            val range = method.range.orElse(null)
-            if (range != null) {
-                val name = method.nameAsString
-                val startLine = range.begin.line
-                val endLine = range.end.line
-                methodPositions.add(MethodPosition(name, startLine, endLine))
+        try {
+            val parser = JavaParser()
+            val cu: CompilationUnit = parser.parse(classContent).result.orElseThrow()
+
+            cu.findAll(MethodDeclaration::class.java).forEach { method ->
+                val range = method.range.orElse(null)
+                if (range != null) {
+                    val name = method.nameAsString
+                    val startLine = range.begin.line
+                    val endLine = range.end.line
+                    methodPositions.add(MethodPosition(name, startLine, endLine))
+                }
             }
+        } catch (e: Exception) {
+            YateConsole.error("Cannot parse class content to extract method positions")
+            YateConsole.error(e.message ?: "")
         }
 
         return methodPositions

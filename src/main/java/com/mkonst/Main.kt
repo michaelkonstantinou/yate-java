@@ -1,133 +1,133 @@
-package com.mkonst;
+package com.mkonst
 
-import com.mkonst.components.YateUnitGenerator;
-import com.mkonst.config.ConfigYate;
-import com.mkonst.evaluation.EvaluationDataset;
-import com.mkonst.evaluation.EvaluationDatasetRecord;
-import com.mkonst.helpers.YateConsole;
-import com.mkonst.helpers.YateJavaUtils;
-import com.mkonst.helpers.YateUtils;
-import com.mkonst.runners.YateJavaRunner;
-import com.mkonst.services.CoverageService;
-import com.mkonst.services.PromptService;
-import com.mkonst.types.TestLevel;
-import com.mkonst.types.YateResponse;
+import com.mkonst.config.ConfigYate.getInteger
+import com.mkonst.config.ConfigYate.initialize
+import com.mkonst.evaluation.EvaluationDataset
+import com.mkonst.helpers.YateConsole.info
+import com.mkonst.helpers.YateJavaUtils.countTestMethods
+import com.mkonst.helpers.YateUtils.timestamp
+import com.mkonst.runners.YateJavaRunner
+import com.mkonst.services.PromptService
+import com.mkonst.types.TestLevel
+import com.mkonst.types.YateResponse
+import java.io.IOException
 
-import java.io.IOException;
-import java.util.List;
-
-public class Main {
-
-    public static void initializeServices() throws IOException {
-        ConfigYate.initialize(".env");
-        PromptService.initialize();
+object Main {
+    @Throws(IOException::class)
+    fun initializeServices() {
+        initialize(".env")
+        PromptService.initialize()
     }
 
-    public static void generateTestForClass(String repositoryPath, String classPath) {
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null, "qwen3:14b");
-        runner.generate(classPath, TestLevel.CLASS);
-        runner.close();
+    fun generateTestForClass(repositoryPath: String?, classPath: String?) {
+        val runner = YateJavaRunner(repositoryPath!!, true, null, null)
+        runner.generate(classPath!!, TestLevel.METHOD)
+        runner.close()
     }
 
-    public static void fixOraclesInTest(String repositoryPath, String testClassPath) {
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null, null);
-        runner.fixOracles(testClassPath);
-        runner.close();
+    fun fixOraclesInTest(repositoryPath: String?, testClassPath: String?) {
+        val runner = YateJavaRunner(repositoryPath!!, true, null, null)
+        runner.fixOracles(testClassPath!!)
+        runner.close()
     }
 
-    public static void enhanceCoverage(String repositoryPath, String cut, String testClassPath) {
-        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null, null);
-        runner.enhanceCoverage(cut, testClassPath);
-        runner.close();
+    fun enhanceCoverage(repositoryPath: String?, cut: String?, testClassPath: String?) {
+        val runner = YateJavaRunner(repositoryPath!!, true, null, null)
+        runner.enhanceCoverage(cut!!, testClassPath!!, null)
+        runner.close()
     }
 
-    public static void main(String[] args) throws IOException {
-        System.out.println("Running YATE (Java)");
-        initializeServices();
-//        ConfigYate.setValue("MODEL", "llama3");
+    @Throws(IOException::class)
+    @JvmStatic
+    fun main(args: Array<String>) {
+        println("Running YATE (Java)")
+        initializeServices()
 
-        String cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/event-ruler/src/main/software/amazon/event/ruler/ACFinder.java";
-        String testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java";
-        String repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/event-ruler/";
-//        enhanceCoverage(repositoryPath, cut, testClassPath);
-//        generateTestForClass(repositoryPath, cut);
-//        fixOraclesInTest(repositoryPath, testClassPath);
-//        System.exit(0);
-////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
+        val cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/WebSocketStreamClientImpl.java"
+        val testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java"
+        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
+        //        enhanceCoverage(repositoryPath, cut, testClassPath);
+//        generateTestForClass(repositoryPath, cut)
+        //        fixOraclesInTest(repositoryPath, testClassPath);
+//        System.exit(0)
+
+        ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
 ////        String outputDir = repositoryPath + "yate-java-tests/";
 //        YateJavaRunner runner = new YateJavaRunner(repositoryPath, true, null);
 //        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
+        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_windward_method_.csv"
 
-        String csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_aws-secretsmanager-jdbc_class_.csv";
+        val dataset = EvaluationDataset(csvFile)
 
-        EvaluationDataset dataset = new EvaluationDataset(csvFile);
+        val recordSize = dataset.records.size
+        var index = 0
 
-        int recordSize = dataset.getRecords().size();
-        int index = 0;
-        YateJavaRunner runner = new YateJavaRunner(dataset.getRecords().get(0).getRepositoryPath(), true, dataset.getRecords().get(0).getOutputDir(), null);
-        for(EvaluationDatasetRecord record: dataset.getRecords()) {
-            index += 1;
+        // Max repeat failed iterations should only be applicable on class-level testing
+        val testLevel: TestLevel = dataset.records[0].testLevel
+        val maxRepeatFailedIterations: Int = if (testLevel == TestLevel.METHOD) 1 else getInteger("MAX_REPEAT_FAILED_ITERATIONS")
+        val runner = YateJavaRunner(dataset.records[0].repositoryPath, true, dataset.records[0].outputDir, null)
+        for (record in dataset.records) {
+            index += 1
 
             // Verify that the record has not been executed
-            if (record.isExecuted()) {
-                continue;
+            if (record.isExecuted) {
+                continue
             }
 
-            boolean hasFailed = true;
-            int i = 0;
-            while (hasFailed && i < ConfigYate.getInteger("MAX_REPEAT_FAILED_ITERATIONS")) {
-                i++;
+            var hasFailed = true
+            var i = 0
+            while (hasFailed && i < maxRepeatFailedIterations) {
+                i++
 
-                System.out.println("Iterating class (" + index + "/" + recordSize + ") (#" + i + "): " + record.getClassPath());
-                var startTime = System.currentTimeMillis();
+                println("Iterating class (" + index + "/" + recordSize + ") (#" + i + "): " + record.classPath)
+                val startTime = System.currentTimeMillis()
 
                 try {
-                    List<YateResponse> responses = runner.generate(record.getClassPath(), record.getTestLevel());
+                    val responses: List<YateResponse> = runner.generate(record.classPath, record.testLevel)
 
                     if (responses.isEmpty()) {
-                        hasFailed = true;
-                        runner.resetNrRequests();
+                        hasFailed = true
+                        runner.resetNrRequests()
 
-                        continue;
+                        continue
                     }
 
                     // Everything went smoothly, update stats
-                    record.setExecuted(true);
-                    record.setRequests(runner.getNrRequests());
+                    record.isExecuted = true
+                    record.requests = runner.getNrRequests()
 
-                    int generatedTests = 0;
-                    for (YateResponse response: responses) {
-                        generatedTests += YateJavaUtils.INSTANCE.countTestMethods(response.getTestClassContainer());
-                        record.addGeneratedTests(generatedTests);
+                    var generatedTests = 0
+                    for ((testClassContainer) in responses) {
+                        generatedTests += countTestMethods(testClassContainer)
+                        record.addGeneratedTests(generatedTests)
                     }
                     if (generatedTests <= 0) {
-                        throw new Exception("Failed to generate tests. Re-run");
+                        throw Exception("Failed to generate tests although the generation process did not break.")
                     }
 
-                    hasFailed = false;
-                } catch (Exception e) {
-                    record.setErrors(e.getMessage());
-                    hasFailed = true;
+                    hasFailed = false
+                } catch (e: Exception) {
+                    record.errors = e.message
+                    hasFailed = true
                 }
 
-                var endTime = System.currentTimeMillis();
-                record.setGenerationTime(endTime - startTime);
-                runner.resetNrRequests();
+                val endTime = System.currentTimeMillis()
+                record.generationTime = endTime - startTime
+                runner.resetNrRequests()
             }
 
-            YateConsole.INSTANCE.info("Updating dataset file");
-            dataset.saveAs(csvFile);
+            info("Updating dataset file")
+            dataset.saveAs(csvFile)
         }
 
-        runner.close();
+        runner.close()
 
-        YateConsole.INSTANCE.info("Saving a new dataset file by the name: ");
-        String newCsvFile = csvFile.replace(".csv", "_results_" + YateUtils.INSTANCE.timestamp() + ".csv");
-        dataset.saveAs(newCsvFile);
-        dataset.printTotals();
-
+        info("Saving a new dataset file by the name: ")
+        val newCsvFile = csvFile.replace(".csv", "_results_" + timestamp() + ".csv")
+        dataset.saveAs(newCsvFile)
+        dataset.printTotals()
     }
 }

@@ -5,6 +5,7 @@ import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.helpers.YateJavaUtils
+import com.mkonst.types.DependencyTool
 import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import java.io.File
@@ -18,7 +19,7 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonPassingTests(dependencyTool: String): Map<String, MutableSet<String>> {
+    fun findNonPassingTests(dependencyTool: DependencyTool): Map<String, MutableSet<String>> {
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
 
         // Step 1: Run tests and get errors
@@ -46,7 +47,7 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonCompilingTests(dependencyTool: String): Map<String, MutableSet<String>> {
+    fun findNonCompilingTests(dependencyTool: DependencyTool): Map<String, MutableSet<String>> {
         val errorLinesByFile = mutableMapOf<String, MutableSet<Int>>()
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
 

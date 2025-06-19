@@ -16,16 +16,15 @@ abstract class YateAbstractRunner(
     val lang: ProgramLangType = ProgramLangType.JAVA,
     private val outputDirectory: String? = null,
     private val requireGreenSuiteOnGeneration: Boolean = true) {
-    protected var dependencyTool: String
+    protected var dependencyTool: DependencyTool
     protected var packageName: String
     protected val errorService: ErrorService = ErrorService(repositoryPath)
 
     init {
         // Identify whether a pom.xml file is present
         // The purpose of this process is to check whether the repository is using maven or gradle
-        val pomFile = File(repositoryPath, "pom.xml")
-        dependencyTool = if (pomFile.exists() && pomFile.isFile) "maven" else "gradle"
-        println("The given repository is using $dependencyTool")
+        dependencyTool = YateUtils.getDependencyTool(repositoryPath)
+        println("The given repository is using ${dependencyTool.name}")
 
         packageName = YateCodeUtils.getRootPackage(repositoryPath)
         println("The package name of the repository under test is: $packageName")
@@ -97,18 +96,29 @@ abstract class YateAbstractRunner(
                 results.addAll(this.generate(classPath, TestLevel.METHOD_RESTRICT))
             }
             TestLevel.METHOD_RESTRICT -> {
+                // Hold a list with all method names and their positions
+                val methodPositions: MutableList<MethodPosition> = YateJavaUtils.extractMethodPositions(cutContainer.bodyContent!!)
+
                 // Iterate all available methods and generate tests for each one of them individually
-                for(mut: String in cutContainer.body.methods.keys) {
-                    val response: YateResponse = generateTestsForMethod(cutContainer, mut)
-                    response.testClassContainer.toTestFile()
-                    hasFailed = onValidation(cutContainer, response)
+                for(mutPosition: MethodPosition in methodPositions) {
 
-                    if (!hasFailed) {
-                        results.add(response)
+                    var i = 0
+                    var hasFailed = true
+                    while (hasFailed && i < ConfigYate.getInteger("MAX_REPEAT_FAILED_ITERATIONS")) {
+                        i++
+
+                        val response: YateResponse = generateTestsForMethod(cutContainer, mutPosition.name)
+                        response.testClassContainer.toTestFile()
+                        hasFailed = onValidation(cutContainer, response)
+
+                        if (!hasFailed) {
+                            results.add(response)
+                            enhanceCoverage(classPath, response.testClassContainer.paths.testClass!!, mutPosition)
+                        }
+
+                        // Remove original generated test
+                        YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
                     }
-
-                    // Remove original generated test
-                    YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
                 }
             }
             TestLevel.HYBRID -> {
@@ -186,24 +196,27 @@ abstract class YateAbstractRunner(
         fixOraclesInTestClass(response)
     }
 
-    fun enhanceCoverage(classPath: String, testClassPath: String): YateResponse? {
+
+    /**
+     * Uses the implemented functionality to generate new tests that will enhance the coverage of the current
+     * test suite. If mutPosition is given, then the coverage should be enhanced for the specific method under test
+     */
+    fun enhanceCoverage(classPath: String, testClassPath: String, mutPosition: MethodPosition? = null): YateResponse? {
         val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
         val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
 
-        var hasFailed: Boolean
+        var hasFailed = true
         var i = 0
         while (i < ConfigYate.getInteger("MAX_REPEAT_FAILED_ITERATIONS")) {
             i++
-            val response = enhanceCoverageForClass(cutContainer, testContainer)
-            if (response === null) {
-                hasFailed = true
-            } else {
+            val response = enhanceCoverageForClass(cutContainer, testContainer, mutPosition)
+            if (response !== null) {
                 hasFailed = onValidation(cutContainer, response)
                 YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
-            }
 
-            if (!hasFailed) {
-                return response
+                if (!hasFailed) {
+                    return response
+                }
             }
         }
 
@@ -218,7 +231,7 @@ abstract class YateAbstractRunner(
 
     abstract fun fixOraclesInTestClass(response: YateResponse): YateResponse
 
-    abstract fun enhanceCoverageForClass(cutContainer: ClassContainer, testClassContainer: ClassContainer): YateResponse?
+    abstract fun enhanceCoverageForClass(cutContainer: ClassContainer, testClassContainer: ClassContainer, methodPosition: MethodPosition? = null): YateResponse?
 
     abstract fun close()
 

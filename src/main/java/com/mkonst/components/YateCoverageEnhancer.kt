@@ -6,6 +6,7 @@ import com.mkonst.helpers.YateConsole
 import com.mkonst.services.CoverageService
 import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
+import com.mkonst.types.MethodPosition
 import com.mkonst.types.YateResponse
 import com.mkonst.types.coverage.MissingCoverage
 
@@ -37,11 +38,18 @@ class YateCoverageEnhancer(private var repositoryPath: String, modelName: String
      * If the coverage missed even at least 1 branch, it will attempt to generate a new test class to with
      * tests to cover the missed branches
      */
-    fun generateTestsForBranchCoverage(cutContainer: ClassContainer, testClassContainer: ClassContainer): YateResponse? {
+    fun generateTestsForBranchCoverage(cutContainer: ClassContainer, testClassContainer: ClassContainer, methodPosition: MethodPosition? = null): YateResponse? {
         // Step 1: Find missing coverage in cutContainer
-        val missingCoverage: MissingCoverage? = CoverageService.getMissingCoverageForClass(repositoryPath, cutContainer.className)
+        val missingCoverage: MissingCoverage?
+        if (methodPosition === null) {
+            missingCoverage = CoverageService.getMissingCoverageForClass(repositoryPath, cutContainer.className)
+        } else {
+            missingCoverage = CoverageService.getMissingCoverageForMethod(repositoryPath, cutContainer.className, methodPosition)
+        }
+
+        // Avoid unnecessary test generation if target is fully covered
         if (missingCoverage === null || missingCoverage.isFullyBranchCovered()) {
-            YateConsole.info("Enhancing branch coverage is skipped as there are no missed branches for ${cutContainer.className}")
+            YateConsole.info("Enhancing branch coverage is skipped as there are no missed branches for ${cutContainer.className} ${methodPosition?.name}")
 
             return null
         }
