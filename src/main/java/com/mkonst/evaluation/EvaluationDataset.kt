@@ -75,7 +75,7 @@ class EvaluationDataset(val file: String? = null) {
             totalGenerationTime += record.generationTime
         }
 
-        val avgRequests = totalRequests / records.size
+        val avgRequests = totalRequests.toFloat() / records.size
         val avgGenerationTime = totalGenerationTime.toFloat() / records.size
 
         println("Total Requests: $totalRequests")

@@ -58,7 +58,7 @@ object Main {
 //        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
-        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_windward_method_.csv"
+        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_event-ruler_method_.csv"
 
         val dataset = EvaluationDataset(csvFile)
 
