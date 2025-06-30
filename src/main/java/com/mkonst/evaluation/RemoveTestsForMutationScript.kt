@@ -34,7 +34,7 @@ object RemoveTestsForMutationScript {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/ConfigMe/"
+        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
         val errors = YateIO.readFile("${repositoryPath}mvn_errors.txt")
 //        println(convertToJavaFilePath(repositoryPath, "ch.jalu.configme.properties.types.InlineArrayPropertyType_toExportValue_Test"))
 

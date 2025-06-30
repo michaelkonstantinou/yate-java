@@ -13,7 +13,7 @@ object ModelProvider {
             return ChatOpenAIModel()
         }
 
-        return if (modelName.startsWith("gpt")) {
+        return if (modelName.startsWith("gpt") || modelName.startsWith("deepseek")) {
 
             if (modelName == "gpt_env") {
                 ChatOpenAIModel()
