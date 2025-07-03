@@ -5,7 +5,7 @@ import com.mkonst.components.YateUnitGenerator
 import com.mkonst.services.PromptService
 import com.mkonst.types.YateResponse
 
-class ExcludeSummarisationRunner: YateUnitGenerator() {
+class ExcludeSummarisationRunner(modelName: String? = null): YateUnitGenerator(modelName) {
     override fun generateForClass(cutContainer: ClassContainer): YateResponse {
         val systemPrompt: String = PromptService.get("system")
 
