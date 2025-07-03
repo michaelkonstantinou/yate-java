@@ -6,6 +6,7 @@ import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.RequestsCounter
+import com.mkonst.evaluation.YateStats
 import com.mkonst.evaluation.ablation.ExcludeSummarisationRunner
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateConsole
@@ -140,7 +141,11 @@ open class YateJavaRunner(
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
         YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
         appendSuggestImports(response)
-        removeInvalidImports(response)
+        val hasFoundInvalidImports = removeInvalidImports(response)
+        if (hasFoundInvalidImports) {
+            YateStats.addCount("starting_invalid_imports")
+        }
+
         response.testClassContainer.toTestFile()
 
         fixFromErrorLog(response)
@@ -231,6 +236,7 @@ open class YateJavaRunner(
         try {
             val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
             response.testClassContainer.appendImports(suggestedImportStatements)
+            YateStats.addCount("suggested_imports", suggestedImportStatements.size)
         } catch (e: Exception) {
             YateConsole.debug("An error occurred when analyzing the import statements. Perhaps Spoon could not analyze the class")
             YateConsole.error(e.message ?: "")

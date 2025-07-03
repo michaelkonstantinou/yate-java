@@ -4,6 +4,7 @@ import com.mkonst.config.ConfigYate.getInteger
 import com.mkonst.config.ConfigYate.initialize
 import com.mkonst.evaluation.EvaluationDataset
 import com.mkonst.evaluation.YatePlainRunner
+import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole.info
 import com.mkonst.helpers.YateJavaUtils.countTestMethods
 import com.mkonst.helpers.YateUtils.timestamp
@@ -22,7 +23,7 @@ object Main {
 
     fun generateTestForClass(repositoryPath: String?, classPath: String?) {
         val runner = YateJavaRunner(repositoryPath!!, true, null, null)
-        runner.generate(classPath!!, TestLevel.METHOD)
+        runner.generate(classPath!!, TestLevel.CONSTRUCTOR)
         runner.close()
     }
 
@@ -48,9 +49,12 @@ object Main {
         val testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java"
         val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
         //        enhanceCoverage(repositoryPath, cut, testClassPath);
-//        generateTestForClass(repositoryPath, cut)
+        YateStats.startTime("generation")
+        generateTestForClass(repositoryPath, cut)
+        YateStats.endTime("generation")
         //        fixOraclesInTest(repositoryPath, testClassPath);
-//        System.exit(0)
+        YateStats.save()
+        System.exit(0)
 
         ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
@@ -69,7 +73,7 @@ object Main {
         // Max repeat failed iterations should only be applicable on class-level testing
         val testLevel: TestLevel = dataset.records[0].testLevel
         val maxRepeatFailedIterations: Int = if (testLevel == TestLevel.METHOD) 1 else getInteger("MAX_REPEAT_FAILED_ITERATIONS")
-        val runner = YatePlainRunner(dataset.records[0].repositoryPath, dataset.records[0].outputDir, "gemma3:27b", 5)
+        val runner = YatePlainRunner(dataset.records[0].repositoryPath, dataset.records[0].outputDir, null, 5)
 //        val runner = YateJavaRunner(dataset.records[0].repositoryPath, true, dataset.records[0].outputDir, null)
         for (record in dataset.records) {
             index += 1
@@ -123,6 +127,7 @@ object Main {
 
             info("Updating dataset file")
             dataset.saveAs(csvFile)
+            YateStats.save()
         }
 
         runner.close()
@@ -131,5 +136,6 @@ object Main {
         val newCsvFile = csvFile.replace(".csv", "_results_" + timestamp() + ".csv")
         dataset.saveAs(newCsvFile)
         dataset.printTotals()
+        YateStats.save()
     }
 }

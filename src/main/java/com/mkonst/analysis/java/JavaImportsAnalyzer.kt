@@ -1,5 +1,6 @@
 package com.mkonst.analysis.java
 
+import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateJavaUtils.classPackageExists
 import spoon.Launcher
 import spoon.reflect.declaration.CtClass
@@ -18,6 +19,7 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
     fun getInvalidPackageImports(
         currentImports: List<String>
     ): MutableList<String> {
+        YateStats.startTime("debugging_overhead")
         val invalidPackageImports: MutableList<String> = ArrayList()
 
         for (importStatement in currentImports) {
@@ -36,6 +38,7 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
             }
         }
 
+        YateStats.endTime("debugging_overhead", true)
         return invalidPackageImports
     }
 
@@ -45,6 +48,7 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
      * @param targetClass
      */
     fun getSuggestedImports(targetClass: String): MutableList<String> {
+        YateStats.startTime("debugging_overhead")
         val suggestedImports: MutableList<String> = mutableListOf()
 
         // Split the string based on ".", and join all elements except the last one (the class name)
@@ -64,6 +68,7 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
             }
         }
 
+        YateStats.endTime("debugging_overhead", true)
         return suggestedImports
     }
 

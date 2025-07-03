@@ -1,5 +1,6 @@
 package com.mkonst.analysis.java
 
+import com.mkonst.evaluation.YateStats
 import spoon.Launcher
 import spoon.reflect.CtModel
 import spoon.reflect.declaration.CtClass
@@ -23,6 +24,7 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
      * information regarding the constructor signatures of other objects the class uses.
      */
     fun getClassesInArgumentsLog(cut: String): String? {
+        YateStats.startTime("debugging_overhead")
         val resultsLog: StringBuilder = StringBuilder()
 
         // Store the classes that are relevant for the results log (so the model knows what to instantiate)
@@ -57,6 +59,7 @@ class JavaArgumentsAnalyzer(val repositoryPath: String, val packageName: String)
             resultsLog.append(getConstructorImplementationsLog(relevantClasses))
         }
 
+        YateStats.endTime("debugging_overhead", true)
         return if (resultsLog.isEmpty()) null else resultsLog.toString()
     }
 

@@ -12,6 +12,7 @@ import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
+import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole
 import com.mkonst.interfaces.ChatModel
 import com.mkonst.types.CodeResponse
@@ -56,6 +57,8 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
      * If system prompt is given (and history is not given), the first message will be the provided system prompt
      */
     override fun ask(prompts: List<String>, systemPrompt: String?, history: MutableList<ChatMessage>?): CodeResponse {
+        YateStats.startTime("openai_request")
+
         // Make sure the prompts given contains data
         if (prompts.isEmpty()) {
             throw EmptyPromptsInRequestException()
@@ -80,6 +83,7 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
             }
         }
 
+        YateStats.endTime("openai_request", true)
         return CodeResponse(answer, conversation)
     }
 

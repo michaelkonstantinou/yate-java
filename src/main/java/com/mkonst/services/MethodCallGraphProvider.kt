@@ -1,6 +1,7 @@
 package com.mkonst.services
 
 import com.mkonst.analysis.MethodCallGraph
+import com.mkonst.evaluation.YateStats
 import spoon.Launcher
 import spoon.reflect.code.CtInvocation
 import spoon.reflect.declaration.CtElement
@@ -12,6 +13,7 @@ object MethodCallGraphProvider {
      * Throws an exception if an error occurred during the analysis
      */
     fun getNewMethodCallGraph(repositoryPath: String, packageName: String?): MethodCallGraph {
+        YateStats.startTime("debugging_overhead")
         var repositoryPath = repositoryPath
         val methodCallGraph = MethodCallGraph()
 
@@ -49,6 +51,7 @@ object MethodCallGraphProvider {
             }
         }
 
+        YateStats.endTime("debugging_overhead", true)
         return methodCallGraph
     }
 }

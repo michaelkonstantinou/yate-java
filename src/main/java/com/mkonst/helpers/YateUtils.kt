@@ -11,6 +11,17 @@ import java.time.format.DateTimeFormatter
 
 object YateUtils {
 
+    /**
+     * Formats a time in milliseconds to Minutes:Seconds format
+     */
+    fun formatMillisToMinSec(millis: Long): String {
+        val totalSeconds = millis / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+
+        return String.format("%02d:%02d:%02d", minutes, seconds, millis)
+    }
+
     fun timestamp(): String {
         val now = LocalDateTime.now()
         val formatted = now.format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss"))

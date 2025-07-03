@@ -1,5 +1,6 @@
 package com.mkonst.analysis.java
 
+import com.mkonst.evaluation.YateStats
 import spoon.Launcher
 import spoon.reflect.CtModel
 import spoon.reflect.code.CtExpression
@@ -14,6 +15,7 @@ class JavaInvocationsAnalyzer(val repositoryPath: String) {
     private lateinit var model: CtModel
 
     fun getAllWrongUsagesLog(cutQualifiedName: String): String? {
+        YateStats.startTime("debugging_overhead")
         loadModel()
         val log: StringBuilder = StringBuilder()
 
@@ -27,6 +29,7 @@ class JavaInvocationsAnalyzer(val repositoryPath: String) {
             log.append(wrongMockUsage)
         }
 
+        YateStats.endTime("debugging_overhead", true)
         return if (log.isEmpty()) null else log.toString()
     }
 
