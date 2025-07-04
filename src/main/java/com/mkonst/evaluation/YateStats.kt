@@ -4,9 +4,9 @@ import com.mkonst.helpers.YateIO
 import com.mkonst.helpers.YateUtils
 
 object YateStats {
-    private val timeStarts: MutableMap<String, Long> = mutableMapOf()
-    private val timeStats: MutableMap<String, Long> = mutableMapOf()
-    private val counts: MutableMap<String, Int> = mutableMapOf()
+    private var timeStarts: MutableMap<String, Long> = mutableMapOf()
+    private var timeStats: MutableMap<String, Long> = mutableMapOf()
+    private var counts: MutableMap<String, Int> = mutableMapOf()
 
     /**
      * Saves the current time stamp in milliseconds for the provided key
@@ -73,5 +73,14 @@ object YateStats {
         }
 
         YateIO.writeFile(outputFilepath, content.toString())
+    }
+
+    /**
+     * Destroys current data structures that hold the current values, and re-initializes them to being empty
+     */
+    fun reset() {
+        this.timeStats = mutableMapOf()
+        this.timeStarts = mutableMapOf()
+        this.counts = mutableMapOf()
     }
 }

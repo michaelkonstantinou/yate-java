@@ -23,6 +23,7 @@ class EvaluationDataset(val file: String? = null) {
                     isExecuted = row["isExecuted"]?.toBoolean() ?: false,
                     errors = row["errors"],
                     outputDir = row["outputDir"],
+                    modelName = row["modelName"],
                     generatedTests = row["generatedTests"]?.toIntOrNull() ?: 0,
                 )
                 records.add(record)
@@ -31,7 +32,7 @@ class EvaluationDataset(val file: String? = null) {
     }
 
     fun saveAs(filename: String) {
-        val header = listOf("repositoryPath", "classPath", "testLevel", "generationRequests", "compilationFixRequests", "oracleFixRequests", "coverageEnhancementRequests", "fixRequests", "totalRequests", "generationTime", "isExecuted", "errors", "outputDir", "generatedTests")
+        val header = listOf("repositoryPath", "classPath", "testLevel", "generationRequests", "compilationFixRequests", "oracleFixRequests", "coverageEnhancementRequests", "fixRequests", "totalRequests", "generationTime", "isExecuted", "errors", "outputDir", "modelName", "generatedTests")
 
         csvWriter().open(File(filename)) {
             writeRow(header)
@@ -50,6 +51,7 @@ class EvaluationDataset(val file: String? = null) {
                     record.isExecuted,
                     record.errors,
                     record.outputDir,
+                    record.modelName,
                     record.generatedTests
                 )
             }

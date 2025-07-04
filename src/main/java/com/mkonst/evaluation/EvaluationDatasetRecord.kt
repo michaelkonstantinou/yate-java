@@ -11,6 +11,7 @@ data class EvaluationDatasetRecord(
     var isExecuted: Boolean,
     var errors: String?,
     var outputDir: String?,
+    val modelName: String?,
     var generatedTests: Int
 ) {
     fun addGeneratedTests(value: Int) {
