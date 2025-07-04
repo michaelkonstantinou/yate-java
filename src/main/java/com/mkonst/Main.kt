@@ -63,7 +63,7 @@ object Main {
 //        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
-        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_chesslib_class__gpt4o_mini_plain.csv"
+        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_chesslib_method__gpt4o_mini_plain.csv"
 
         val dataset = EvaluationDataset(csvFile)
 
@@ -73,7 +73,7 @@ object Main {
         // Max repeat failed iterations should only be applicable on class-level testing
         val testLevel: TestLevel = dataset.records[0].testLevel
         val maxRepeatFailedIterations: Int = if (testLevel == TestLevel.METHOD) 1 else getInteger("MAX_REPEAT_FAILED_ITERATIONS")
-        val runner = YatePlainRunner(dataset.records[0].repositoryPath, dataset.records[0].outputDir, dataset.records[0].modelName, 5)
+        val runner = YatePlainRunner(dataset.records[0].repositoryPath, dataset.records[0].outputDir, null, 5)
 //        val runner = YateJavaRunner(dataset.records[0].repositoryPath, true, dataset.records[0].outputDir, null)
         for (record in dataset.records) {
             index += 1

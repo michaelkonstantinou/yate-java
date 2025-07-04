@@ -1,0 +1,4 @@
+The following class is missing unit tests for method %%METHOD_NAME%%. Please generate all tests needed to achieve 100% code coverage for method %%METHOD_NAME%%, using %%TEST_FRAMEWORK%%.
+The name of the generated test class must be %%CLASS_NAME%%. Return only the code
+
+%%CLASS_CONTENT%%

@@ -1,5 +1,6 @@
 package com.mkonst.components
 
+import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.models.ModelProvider
 import com.mkonst.services.PromptService
@@ -14,6 +15,10 @@ import com.openai.errors.BadRequestException
  */
 class YatePlainErrorFixer(private var repositoryPath: String, private var dependencyTool: DependencyTool, modelName: String? = null): AbstractModelComponent(modelName) {
 
+    init {
+        YateConsole.info("YatePlainErrorFixer initialized with model: $modelName")
+    }
+    
     fun fixErrors(response: YateResponse): Boolean {
         val errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
 

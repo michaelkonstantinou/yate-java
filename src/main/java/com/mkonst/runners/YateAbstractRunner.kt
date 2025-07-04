@@ -156,11 +156,12 @@ abstract class YateAbstractRunner(
     }
 
     /**
-     * Generates 1 test class for the given method under test
-     * Returns a YateResponse instance that includes the generated Test class, only if the operation
+     * Generates 1 test class for the given method under test and possibly 1 more if enhancement component is used
+     * Returns a list of YateResponse instances that include the generated Test classes, only if the operation
      * was successful
      */
-    fun generate(classPath: String, methodName: String): YateResponse? {
+    fun generate(classPath: String, methodName: String): MutableList<YateResponse> {
+        val results: MutableList<YateResponse> = mutableListOf()
         val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
         var hasFailed: Boolean = false
         val response: YateResponse = generateTestsForMethod(cutContainer, methodName)
@@ -168,10 +169,19 @@ abstract class YateAbstractRunner(
         hasFailed = onValidation(cutContainer, response)
 
         if (!hasFailed) {
-            return response
+            results.add(response)
+            val enhancedResponse: YateResponse? = this.enhanceCoverage(classPath, response.testClassContainer.paths.testClass!!)
+
+            // Add enhanced response to results and remove generated test
+            if (enhancedResponse !== null) {
+                results.add(enhancedResponse)
+            }
         }
 
-        return null
+        // Remove original generated test
+        YateUtils.moveGeneratedTestClass(response.testClassContainer, outputDirectory)
+
+        return results
     }
 
     /**

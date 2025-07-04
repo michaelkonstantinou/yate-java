@@ -16,7 +16,7 @@ class YateAblationRunner(repositoryPath: String,
                          private val hasCompilationFixingComponent: Boolean = true,
                          private val hasOracleFixComponent: Boolean = true,
                          private val hasCoverageEnhancementComponent: Boolean = true) : YateJavaRunner(repositoryPath, includeOracleFixing, outputDirectory, modelName) {
-    private val simpleGenerator: YateUnitGenerator = ExcludeSummarisationRunner()
+    private val simpleGenerator: YateUnitGenerator = SimpleUnitTestGenerator()
 
     init {
         YateConsole.debug("Active components:")
