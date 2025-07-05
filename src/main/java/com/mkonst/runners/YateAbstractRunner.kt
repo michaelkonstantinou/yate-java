@@ -3,6 +3,7 @@ package com.mkonst.runners
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.config.ConfigYate
 import com.mkonst.config.ConfigYate.getInteger
+import com.mkonst.evaluation.RequestsCounter
 import com.mkonst.helpers.*
 import com.mkonst.providers.ClassContainerProvider
 import com.mkonst.services.CoverageService
@@ -156,7 +157,7 @@ abstract class YateAbstractRunner(
     }
 
     /**
-     * Generates 1 test class for the given method under test and possibly 1 more if enhancement component is used
+     * Generates 1 test class for the given method under test and possibly 1 more if the enhancement component is used
      * Returns a list of YateResponse instances that include the generated Test classes, only if the operation
      * was successful
      */
@@ -244,6 +245,10 @@ abstract class YateAbstractRunner(
     abstract fun enhanceCoverageForClass(cutContainer: ClassContainer, testClassContainer: ClassContainer, methodPosition: MethodPosition? = null): YateResponse?
 
     abstract fun close()
+
+    abstract fun getNrRequests(): RequestsCounter
+
+    abstract fun resetNrRequests()
 
     /**
      * Executes the tests and finds the ones that did not compile

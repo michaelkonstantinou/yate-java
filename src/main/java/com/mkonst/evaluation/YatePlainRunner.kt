@@ -72,13 +72,13 @@ class YatePlainRunner(repositoryPath: String,
         simpleFixer.closeConnection()
     }
 
-    fun getNrRequests(): RequestsCounter {
+    override fun getNrRequests(): RequestsCounter {
         return RequestsCounter(
             simpleGenerator.getNrRequests(),
             simpleFixer.getNrRequests())
     }
 
-    fun resetNrRequests() {
+    override fun resetNrRequests() {
         simpleGenerator.resetNrRequests()
         simpleFixer.resetNrRequests()
     }

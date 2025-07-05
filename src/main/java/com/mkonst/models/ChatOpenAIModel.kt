@@ -29,10 +29,11 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
     init {
         if (model === null) {
             this.model = ConfigYate.getString("GPT_MODEL")
+        } else {
+            this.model = model
         }
 
         if (model !== null && model.contains("deepseek")) {
-            this.model = model
             this.client = OpenAI(
                     token = ConfigYate.getString("DEEPSEEK_API_KEY"),
                     host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL")),

@@ -63,7 +63,7 @@ object Main {
 //        runner.generate("/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/main/java/org/flmelody/core/exception/WindwardException.java", TestLevel.CLASS);
 //////        runner.fix("/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java", "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/test/java/com/binance/connector/client/impl/SpotClientImplTest.java");
 //        runner.close();
-        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_chesslib_method__gpt4o_mini_plain.csv"
+        val csvFile = "/Users/michael.konstantinou/Projects/yate/output/input_ConfigMe_class_gpt4_1.csv"
 
         val dataset = EvaluationDataset(csvFile)
 

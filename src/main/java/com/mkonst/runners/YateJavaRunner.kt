@@ -178,7 +178,7 @@ open class YateJavaRunner(
         yateCoverageEnhancer.closeConnection()
     }
 
-    fun getNrRequests(): RequestsCounter {
+    override fun getNrRequests(): RequestsCounter {
         return RequestsCounter(
             yateGenerator.getNrRequests(),
             yateTestFixer.getNrRequests(),
@@ -186,7 +186,7 @@ open class YateJavaRunner(
             yateCoverageEnhancer.getNrRequests())
     }
 
-    fun resetNrRequests() {
+    override fun resetNrRequests() {
         yateGenerator.resetNrRequests()
         yateTestFixer.resetNrRequests()
         yateOracleFixer.resetNrRequests()
