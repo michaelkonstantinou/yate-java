@@ -15,6 +15,6 @@ data class MutationScore(val generatedMutants: Int, val killedMutants: Int) {
             return "(Problematic score: Has 0 generated mutants)"
         }
 
-        return "${getScorePercentage()}% ($generatedMutants/$killedMutants)"
+        return "${getScorePercentage()}% ($killedMutants/$generatedMutants)"
     }
 }
