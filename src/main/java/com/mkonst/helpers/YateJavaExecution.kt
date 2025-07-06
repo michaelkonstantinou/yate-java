@@ -22,6 +22,30 @@ object YateJavaExecution {
     }
 
     /**
+     * Runs the Pi-test tool to calculate the mutation score, and returns the output (with errors or not)
+     */
+    fun runPiTest(repositoryPath: String, dependencyTool: DependencyTool): String {
+        YateConsole.info("Running Pi-test for mutation score")
+
+        return when (dependencyTool) {
+            DependencyTool.MAVEN -> runPiTestWithMaven(repositoryPath)
+            else -> throw Exception("Dependency tool $dependencyTool is not supported")
+        }
+    }
+
+    private fun runPiTestWithMaven(repositoryPath: String): String {
+        val command = listOf("mvn", "test-compile", "org.pitest:pitest-maven:mutationCoverage")
+        val processBuilder = ProcessBuilder(command)
+            .directory(File(repositoryPath))
+            .redirectErrorStream(true)
+
+        val process = processBuilder.start()
+        val reader = BufferedReader(InputStreamReader(process.inputStream))
+
+        return reader.readText()
+    }
+
+    /**
      * Runs the whole test suite in the given repository using maven, and returns the error log
      * Depending on the flag includeCompilingTests, the method will either return the compilation errors, or the
      * errors from a compiling suite.

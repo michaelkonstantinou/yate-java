@@ -2,7 +2,10 @@ package com.mkonst.evaluation
 
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateIO
+import com.mkonst.services.PiTestService
+import com.mkonst.types.DependencyTool
 import com.mkonst.types.ProgramLangType
+import com.mkonst.types.coverage.MutationScore
 
 object RemoveTestsForMutationScript {
 
@@ -34,19 +37,10 @@ object RemoveTestsForMutationScript {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/batch-processing-gateway/"
-        val errors = YateIO.readFile("${repositoryPath}mvn_errors.txt")
-//        println(convertToJavaFilePath(repositoryPath, "ch.jalu.configme.properties.types.InlineArrayPropertyType_toExportValue_Test"))
+        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
+        val piTestService: PiTestService = PiTestService(repositoryPath)
+        val ms: MutationScore = piTestService.runMutationScore(DependencyTool.MAVEN)
 
-        val testsToRemoveByClassPath: MutableMap<String, MutableSet<String>> = parseErrorLog(errors)
-        var nrTestsRemoved: Int = 0
-        for ((testClassPath, testNames) in testsToRemoveByClassPath) {
-            nrTestsRemoved += testNames.size
-            val classPathToUpdate = convertToJavaFilePath(repositoryPath, "src/test/java/", testClassPath)
-            val newContent: String = YateCodeUtils.removeMethodsInClass(classPathToUpdate, testNames, ProgramLangType.JAVA)
-            YateIO.writeFile(classPathToUpdate, newContent)
-        }
-
-        println("# tests removed: $nrTestsRemoved")
+        println(ms)
     }
 }

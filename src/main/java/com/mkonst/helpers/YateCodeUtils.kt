@@ -5,6 +5,23 @@ import java.io.File
 
 object YateCodeUtils {
 
+    @JvmStatic
+    fun getClassPathFromQualifiedName(repositoryPath: String, className: String, lang: ProgramLangType = ProgramLangType.JAVA): String {
+
+        // Replace underscores with file separators only before the final class name
+        val lastDotIndex = className.lastIndexOf('.')
+        val packagePath = className.substring(0, lastDotIndex).replace('.', '/')
+        val classSimpleName = className.substring(lastDotIndex + 1)
+
+        var possiblePath = "${repositoryPath}src/test/java/$packagePath/$classSimpleName${lang.extension}"
+        println(possiblePath)
+        if (File(possiblePath).exists()) {
+            return possiblePath
+        }
+
+        return "${repositoryPath}src/test/$packagePath/$classSimpleName${lang.extension}"
+    }
+
     /**
      * Iterates all java and kotlin files in the repository and finds their common package prefix
      */
