@@ -3,6 +3,7 @@ package com.mkonst.helpers
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mkonst.analysis.ClassContainer
+import com.mkonst.config.ConfigYate
 import com.mkonst.types.DependencyTool
 import com.mkonst.types.YateResponse
 import java.io.File
@@ -12,14 +13,22 @@ import java.time.format.DateTimeFormatter
 object YateUtils {
 
     /**
-     * Formats a time in milliseconds to Minutes:Seconds format
+     * Formats the given float value into a decimal number of 2 digits
+     */
+    fun formatDecimal(value: Float): String {
+        return String.format("%.2f", value).replace(".", ConfigYate.getString("CHAR_COMMA"))
+    }
+
+    /**
+     * Formats a time in milliseconds to Hours:Minutes:Seconds:Milliseconds format
      */
     fun formatMillisToMinSec(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
+        val hours = millis / (1000 * 60 * 60)
+        val minutes = (millis / (1000 * 60)) % 60
+        val seconds = (millis / 1000) % 60
+        val ms = (millis % 1000) / 10
 
-        return String.format("%02d:%02d:%02d", minutes, seconds, millis)
+        return String.format("%02dh:%02dm:%02ds:%02dmi", hours, minutes, seconds, ms)
     }
 
     fun timestamp(): String {

@@ -2,6 +2,7 @@ package com.mkonst.evaluation
 
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import com.mkonst.helpers.YateUtils
 import com.mkonst.types.TestLevel
 import java.io.File
 
@@ -59,6 +60,13 @@ class EvaluationDataset(val file: String? = null) {
     }
 
     fun printTotals() {
+        println(getTotalsText())
+    }
+
+    /**
+     * Calculates a summary of all its values and returns a structured multiline text with the results
+     */
+    fun getTotalsText(): String {
         var totalRequests = 0
         var totalGenerationRequests = 0
         var totalCompilingFixingRequests = 0
@@ -80,14 +88,18 @@ class EvaluationDataset(val file: String? = null) {
         val avgRequests = totalRequests.toFloat() / records.size
         val avgGenerationTime = totalGenerationTime.toFloat() / records.size
 
-        println("Total Requests: $totalRequests")
-        println("Total Generation Requests: $totalGenerationRequests")
-        println("Total Compiling fixing Requests: $totalCompilingFixingRequests")
-        println("Total Oracle fixing Requests: $totalOracleFixingRequests")
-        println("Total Coverage enhancement Requests: $totalCoverageEnhanceRequests")
-        println("Total Generated Tests: $totalGeneratedTests")
-        println("Total Generation Time: $totalGenerationTime")
-        println("Average Nr. Requests: $avgRequests")
-        println("Average Generation Time: $avgGenerationTime")
+        val output: StringBuilder = StringBuilder()
+        output.appendLine("Total Requests: $totalRequests")
+        output.appendLine("Total Generation Requests: $totalGenerationRequests")
+        output.appendLine("Total Compiling fixing Requests: $totalCompilingFixingRequests")
+        output.appendLine("Total Oracle fixing Requests: $totalOracleFixingRequests")
+        output.appendLine("Total Coverage enhancement Requests: $totalCoverageEnhanceRequests")
+        output.appendLine("Total Generated Tests: $totalGeneratedTests")
+        output.appendLine("Total Generation Time: $totalGenerationTime")
+        output.appendLine("Total Generation Time (human readable): ${YateUtils.formatMillisToMinSec(totalGenerationTime)}")
+        output.appendLine("Average Nr. Requests: ${YateUtils.formatDecimal(avgRequests)}")
+        output.appendLine("Average Generation Time: ${YateUtils.formatDecimal(avgGenerationTime)}")
+
+        return output.toString()
     }
 }

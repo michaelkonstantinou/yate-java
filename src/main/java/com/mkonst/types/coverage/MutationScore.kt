@@ -1,5 +1,8 @@
 package com.mkonst.types.coverage
 
+import com.mkonst.config.ConfigYate
+import com.mkonst.helpers.YateUtils
+
 data class MutationScore(val generatedMutants: Int, val killedMutants: Int) {
 
     fun getScore(): Float {
@@ -15,6 +18,7 @@ data class MutationScore(val generatedMutants: Int, val killedMutants: Int) {
             return "(Problematic score: Has 0 generated mutants)"
         }
 
-        return "${getScorePercentage()}% ($killedMutants/$generatedMutants)"
+        val scorePercentage = YateUtils.formatDecimal(getScorePercentage())
+        return "$scorePercentage% ($killedMutants/$generatedMutants)"
     }
 }

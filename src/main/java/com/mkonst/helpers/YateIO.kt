@@ -20,6 +20,12 @@ object YateIO {
         file.writeText(content)
     }
 
+    fun deleteFile(path: String): Boolean {
+        val file = File(path)
+
+        return file.delete()
+    }
+
     fun getClassNameFromPath(classPath: String, suffix: String = ".java"): String {
         return classPath.substringAfterLast("/").removeSuffix(suffix)
     }

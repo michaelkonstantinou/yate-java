@@ -220,6 +220,17 @@ object YateJavaUtils {
         return result
     }
 
+    fun findImportsFromLineNumbers(file: File, lineNumbers: Set<Int>): Set<String> {
+        val result = mutableSetOf<String>()
+        val contentLines = YateIO.readFile(file.path).lines()
+
+        for (line in lineNumbers) {
+            result.add(contentLines[line - 1])
+        }
+
+        return result
+    }
+
     /**
      * Scans the given filepath, and returns the number of methods that contain the @Test annotation
      */

@@ -101,6 +101,7 @@ object YateJavaExecution {
             else -> throw Exception("Dependency tool $dependencyTool is not supported")
         }
     }
+
     private fun parseFailedTestLineMaven(errorLine: String): OracleError? {
         // Standard pattern: class.method:line expected:<val> but was:<val>
         val standardPattern = Regex(

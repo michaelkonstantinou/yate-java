@@ -20,7 +20,7 @@ class PiTestService(private val repositoryPath: String) {
 
         // Attempt to fix errors by removing failing tests
         var iterations: Int = 0
-        while (hasErrors && iterations < 5) {
+        while (hasErrors && iterations < 10) {
             iterations += 1
             YateConsole.debug("Fixing failing tests for mutation score. Iteration: #$iterations")
 
@@ -96,7 +96,6 @@ class PiTestService(private val repositoryPath: String) {
 
         return result
     }
-
 
     /**
      * Uses Regex to extract all statistics that contain the # of mutation killed and the # of generated mutations

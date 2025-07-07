@@ -1,5 +1,6 @@
 package com.mkonst.services
 
+import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateIO
 import com.mkonst.types.MethodPosition
 import com.mkonst.types.coverage.BranchCoverage
@@ -180,5 +181,5 @@ object CoverageService {
 
     // Format to string with percent and comma decimal
     private fun format(coverage: Double, covered: Int, total: Int): String =
-        String.format("%.2f%% (%d / %d)", coverage * 100, covered, total).replace('.', ',')
+        String.format("%.2f%% (%d / %d)", coverage * 100, covered, total).replace(".", ConfigYate.getString("CHAR_COMMA"))
 }
