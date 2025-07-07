@@ -10,6 +10,7 @@ import com.github.javaparser.ast.stmt.BlockStmt
 import com.github.javaparser.ast.stmt.Statement
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.types.MethodBlock
 import com.mkonst.types.MethodPosition
 import java.io.File
 
@@ -201,6 +202,10 @@ object YateJavaUtils {
         return results
     }
 
+    /**
+     * Uses the Java parser to find the method that corresponds for each lineNumber given to the function
+     * Returns a set, if multiple line numbers point to the same method, the method won't be returned more than once
+     */
     fun findMethodsFromLines(file: File, lineNumbers: Set<Int>): Set<String> {
         val result = mutableSetOf<String>()
 
@@ -220,12 +225,17 @@ object YateJavaUtils {
         return result
     }
 
+    /**
+     * Finds and returns the import statements that the given line numbers correspond to (checks whether are imports)
+     */
     fun findImportsFromLineNumbers(file: File, lineNumbers: Set<Int>): Set<String> {
         val result = mutableSetOf<String>()
         val contentLines = YateIO.readFile(file.path).lines()
 
         for (line in lineNumbers) {
-            result.add(contentLines[line - 1])
+            if (contentLines[line - 1].trimIndent().startsWith("import")) {
+                result.add(contentLines[line - 1])
+            }
         }
 
         return result
@@ -308,5 +318,65 @@ object YateJavaUtils {
         }
 
         return methodPositions
+    }
+
+
+    fun extractMethodsWithBodies(source: String): List<MethodBlock> {
+        val lines = source.lines()
+        val methods = mutableListOf<MethodBlock>()
+
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i].trim()
+
+            // Match method signature (basic heuristic)
+            val methodRegex = Regex(
+                """^\s*(public|private|protected)?\s*(static)?\s*[\w<>\[\]]+\s+\w+\s*\(.*?\)\s*(throws\s+[\w.,\s]+)?\s*\{""",
+                RegexOption.DOT_MATCHES_ALL
+            )
+
+            if (methodRegex.matches(line)) {
+                // Look backward for annotations
+                val annotationStart = (i - 1 downTo 0).takeWhile { lines[it].trim().startsWith("@") }.lastOrNull() ?: i
+                val methodStartLine = annotationStart
+
+                val currentBlock = StringBuilder()
+                for (j in methodStartLine..i) {
+                    currentBlock.appendLine(lines[j])
+                }
+
+                var braceCount = if (line.contains("{")) 1 else 0
+                var j = i + 1
+                while (j < lines.size && braceCount > 0) {
+                    val currentLine = lines[j]
+                    currentBlock.appendLine(currentLine)
+                    braceCount += currentLine.count { it == '{' }
+                    braceCount -= currentLine.count { it == '}' }
+                    j++
+                }
+
+                methods.add(
+                    MethodBlock(
+                        signature = lines[i].trim(),
+                        body = currentBlock.toString(),
+                        startLine = methodStartLine + 1,
+                        endLine = j
+                    )
+                )
+
+                i = j // continue after method body
+            } else {
+                i++
+            }
+        }
+
+        return methods
+    }
+
+
+    fun findMethodByLineNumber(methods: List<MethodBlock>, lineNumber: Int): MethodBlock? {
+        println(lineNumber)
+        println(methods)
+        return methods.find { lineNumber in it.startLine..it.endLine }
     }
 }

@@ -1,5 +1,6 @@
 package com.mkonst.services
 
+import com.mkonst.helpers.YateIO
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.types.DependencyTool
@@ -56,14 +57,46 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonCompilingClasses(dependencyTool: DependencyTool): Map<String, MutableSet<String>> {
+    fun findNonCompilingClassesRegex(dependencyTool: DependencyTool): Pair<Map<String, MutableSet<String>>, Map<String, MutableSet<String>>> {
         // Step 1: Run tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = false)
         if (errors == null) {
-            return emptyMap()
+            return Pair(emptyMap(), emptyMap())
         }
 
-        return getNonCompilingNodesFromLog(errors).second
+        val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
+        val importsByTestClass = mutableMapOf<String, MutableSet<String>>()
+
+        // Step 1: Iterate errors and collect faulty lines per file
+        val errorLinesByFile: MutableMap<String, MutableSet<Int>> = groupErrorLinesByFile(errors)
+
+        // Step 2: Iterate all files that contain error lines, and get the method names that contain the error line
+        for ((filename, errorLines) in errorLinesByFile) {
+
+            // Verify that this is a test file and not anything from the source code
+            if (filename.contains("/src/test/")) {
+
+                // Get all available methods and their bodies using Regex
+                val availableMethods = YateJavaUtils.extractMethodsWithBodies(YateIO.readFile(filename))
+                for (errorLine in errorLines) {
+                    var methodBody = YateJavaUtils.findMethodByLineNumber(availableMethods, errorLine)
+
+                    if (methodBody !== null) {
+                        val methods = testsByTestClass.getOrPut(filename) { mutableSetOf() }
+                        methods.add(methodBody.body)
+                    }
+                }
+
+                // Get invalid import statements
+                val invalidImports = YateJavaUtils.findImportsFromLineNumbers(File(filename), errorLines)
+                if (invalidImports.isNotEmpty()) {
+                    val imports = importsByTestClass.getOrPut(filename) { mutableSetOf() }
+                    imports.addAll(invalidImports)
+                }
+            }
+        }
+
+        return Pair(testsByTestClass, importsByTestClass)
     }
 
     /**
@@ -174,23 +207,11 @@ class ErrorService(private val repositoryPath: String) {
     }
 
     private fun getNonCompilingNodesFromLog(errors: String): Pair<MutableMap<String, MutableSet<String>>, MutableMap<String, MutableSet<String>>> {
-        val errorLinesByFile = mutableMapOf<String, MutableSet<Int>>()
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
         val importsByTestClass = mutableMapOf<String, MutableSet<String>>()
 
-        val reNonPassingErrorLine = Regex("""^\[ERROR\]\s+(.+\.java):\[(\d+),(\d+)]""")
-
         // Step 1: Iterate errors and collect faulty lines per file
-        for (errorLine in errors.lineSequence()) {
-            val matchResult = reNonPassingErrorLine.find(errorLine)
-
-            if (matchResult != null) {
-                val (testClass, lineNumber) = matchResult.destructured
-
-                val errorLines = errorLinesByFile.getOrPut(testClass) { mutableSetOf() }
-                errorLines.add(lineNumber.toInt())
-            }
-        }
+        val errorLinesByFile: MutableMap<String, MutableSet<Int>> = groupErrorLinesByFile(errors)
 
         // Step 2: Iterate all files that contain error lines, and get the method names that contain the error line
         for ((filename, errorLines) in errorLinesByFile) {
@@ -215,5 +236,27 @@ class ErrorService(private val repositoryPath: String) {
         }
 
         return Pair(testsByTestClass, importsByTestClass)
+    }
+
+    /**
+     * Given the regex that captures the pattern of the error line, the method will iterate all errors and group
+     * them by the file that contains the error
+     */
+    private fun groupErrorLinesByFile(errors: String): MutableMap<String, MutableSet<Int>> {
+        val errorLinesByFile = mutableMapOf<String, MutableSet<Int>>()
+        val rePattern = Regex("""^\[ERROR\]\s+(.+\.java):\[(\d+),(\d+)]""")
+
+        for (errorLine in errors.lineSequence()) {
+            val matchResult = rePattern.find(errorLine)
+
+            if (matchResult != null) {
+                val (testClass, lineNumber) = matchResult.destructured
+
+                val errorLines = errorLinesByFile.getOrPut(testClass) { mutableSetOf() }
+                errorLines.add(lineNumber.toInt())
+            }
+        }
+
+        return errorLinesByFile
     }
 }
