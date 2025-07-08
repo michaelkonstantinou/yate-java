@@ -33,7 +33,6 @@ object RemoveNonCompilingTests {
         var nrIncorrectFiles = 0
 
         for ((testClass, imports) in filepathsByImports) {
-            println(imports)
             nrIncorrectImports += imports.size
             nrIncorrectFiles += 1
             YateIO.deleteFile(testClass)

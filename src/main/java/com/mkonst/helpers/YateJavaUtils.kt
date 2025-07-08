@@ -375,8 +375,6 @@ object YateJavaUtils {
 
 
     fun findMethodByLineNumber(methods: List<MethodBlock>, lineNumber: Int): MethodBlock? {
-        println(lineNumber)
-        println(methods)
         return methods.find { lineNumber in it.startLine..it.endLine }
     }
 }
