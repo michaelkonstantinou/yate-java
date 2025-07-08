@@ -13,7 +13,7 @@ data class BinaryCoverage(val covered: Int, val total: Int) {
      * Calculates and returns the score as a float number. (Calculated as covered/total)
      */
     fun getScore(): Float {
-        return covered.toFloat() / total.toFloat()
+        return (covered.toFloat() / total.toFloat()) * 100
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.mkonst.types.coverage
 
-import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateUtils
 
 data class MutationScore(val generatedMutants: Int, val killedMutants: Int) {

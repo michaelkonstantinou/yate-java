@@ -3,9 +3,7 @@ package com.mkonst.services
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateIO
 import com.mkonst.types.MethodPosition
-import com.mkonst.types.coverage.BranchCoverage
-import com.mkonst.types.coverage.MethodCoverage
-import com.mkonst.types.coverage.MissingCoverage
+import com.mkonst.types.coverage.*
 import org.jsoup.Jsoup
 import java.nio.file.Paths
 import javax.xml.parsers.DocumentBuilderFactory
@@ -135,7 +133,7 @@ object CoverageService {
     /**
      * Reads the jacoco index file of the given repository, and returns a map with line-branch-method-class coverage
      */
-    fun getJacocoCoverages(repositoryPath: String): Map<String, String> {
+    fun getJacocoCoverages(repositoryPath: String): JacocoCoverageHolder {
         val htmlFile = Paths.get(repositoryPath, "target/site/jacoco/index.html").toFile()
         val doc = Jsoup.parse(htmlFile, "UTF-8")
 
@@ -153,33 +151,24 @@ object CoverageService {
         // Line coverage
         val missedLines = parseInt(cols[7].text())
         val allLines = parseInt(cols[8].text())
-        val lineCoverage = (allLines - missedLines).toDouble() / allLines
+        val lineCoverage = BinaryCoverage(allLines - missedLines, allLines)
 
         // Branch coverage
         val (missedBranchesStr, allBranchesStr) = cols[3].text().trim().split("of")
         val missedBranches = parseInt(missedBranchesStr)
         val allBranches = parseInt(allBranchesStr)
-        val branchCoverage = (allBranches - missedBranches).toDouble() / allBranches
+        val branchCoverage = BinaryCoverage(allBranches - missedBranches, allBranches)
 
         // Method coverage
         val missedMethods = parseInt(cols[9].text())
         val allMethods = parseInt(cols[10].text())
-        val methodCoverage = (allMethods - missedMethods).toDouble() / allMethods
+        val methodCoverage = BinaryCoverage(allMethods - missedMethods, allMethods)
 
         // Class coverage
         val missedClasses = parseInt(cols[11].text())
         val allClasses = parseInt(cols[12].text())
-        val classCoverage = (allClasses - missedClasses).toDouble() / allClasses
+        val classCoverage = BinaryCoverage(allClasses - missedClasses, allClasses)
 
-        return mapOf(
-            "branch_coverage" to format(branchCoverage, allBranches - missedBranches, allBranches),
-            "line_coverage" to format(lineCoverage, allLines - missedLines, allLines),
-            "method_coverage" to format(methodCoverage, allMethods - missedMethods, allMethods),
-            "class_coverage" to format(classCoverage, allClasses - missedClasses, allClasses),
-        )
+        return JacocoCoverageHolder(lineCoverage, branchCoverage, methodCoverage, classCoverage)
     }
-
-    // Format to string with percent and comma decimal
-    private fun format(coverage: Double, covered: Int, total: Int): String =
-        String.format("%.2f%% (%d / %d)", coverage * 100, covered, total).replace(".", ConfigYate.getString("CHAR_COMMA"))
 }
