@@ -20,6 +20,8 @@ object ModelProvider {
             } else {
                 ChatOpenAIModel(modelName)
             }
+        } else if (modelName.startsWith("gemma") || modelName.startsWith("gemini")){
+            ChatGeminiModel(modelName)
         } else {
             ChatOllamaModel(modelName)
         }

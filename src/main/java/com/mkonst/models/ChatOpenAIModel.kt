@@ -95,21 +95,6 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
     /**
      * Makes the (possibly network) request to the model and returns its message response as a String
      */
-    private suspend fun executeRequest(conversation: MutableList<ChatMessage>): String? {
-        val chatCompletionRequest = ChatCompletionRequest(
-                model = ModelId(this.model),
-                temperature = 0.1,
-                messages = conversation
-        )
-
-        val completion: ChatCompletion = client.chatCompletion(chatCompletionRequest)
-
-        return completion.choices.first().message.content
-    }
-
-    /**
-     * Makes the (possibly network) request to the model and returns its message response as a String
-     */
     private suspend fun executeRequest(conversation: MutableList<ChatMessage>, maxIterations: Int): String? {
         val chatCompletionRequest = ChatCompletionRequest(
             model = ModelId(this.model),

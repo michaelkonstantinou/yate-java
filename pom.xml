@@ -149,6 +149,19 @@
             <artifactId>okhttp</artifactId>
             <version>4.12.0</version>
         </dependency>
+
+        <!-- Gen-AI for Gemini support -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.1.2-jre</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.genai</groupId>
+            <artifactId>google-genai</artifactId>
+            <version>1.7.0</version>
+        </dependency>
     </dependencies>
 
     <build>

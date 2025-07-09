@@ -21,9 +21,9 @@ object Main {
         PromptService.initialize()
     }
 
-    fun generateTestForClass(repositoryPath: String?, classPath: String?) {
-        val runner = YateJavaRunner(repositoryPath!!, true, null, null)
-        runner.generate(classPath!!, TestLevel.CONSTRUCTOR)
+    fun generateTestForClass(repositoryPath: String, classPath: String) {
+        val runner = YateJavaRunner(repositoryPath, true, null, null)
+        runner.generate(classPath)
         runner.close()
     }
 
@@ -50,11 +50,11 @@ object Main {
         val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
         //        enhanceCoverage(repositoryPath, cut, testClassPath);
 //        YateStats.startTime("generation")
-//        generateTestForClass(repositoryPath, cut)
+        generateTestForClass(repositoryPath, cut)
 //        YateStats.endTime("generation")
 //        //        fixOraclesInTest(repositoryPath, testClassPath);
 //        YateStats.save()
-//        System.exit(0)
+        System.exit(0)
 
         ////        CoverageService.INSTANCE.getMissingCoverageForClass(repositoryPath, "com.binance.connector.client.utils.signaturegenerator.RsaSignatureGenerator");
 ////
@@ -73,8 +73,8 @@ object Main {
         // Max repeat failed iterations should only be applicable on class-level testing
         val testLevel: TestLevel = dataset.records[0].testLevel
         val maxRepeatFailedIterations: Int = if (testLevel == TestLevel.METHOD) 1 else getInteger("MAX_REPEAT_FAILED_ITERATIONS")
-        val runner = YatePlainRunner(dataset.records[0].repositoryPath, dataset.records[0].outputDir, null, 5)
-//        val runner = YateJavaRunner(dataset.records[0].repositoryPath, true, dataset.records[0].outputDir, null)
+//        val runner = YatePlainRunner(dataset.records[0].repositoryPath, dataset.records[0].outputDir, null, 5)
+        val runner = YateJavaRunner(dataset.records[0].repositoryPath, true, dataset.records[0].outputDir, null)
         for (record in dataset.records) {
             index += 1
 
