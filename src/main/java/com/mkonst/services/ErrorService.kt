@@ -25,7 +25,7 @@ class ErrorService(private val repositoryPath: String) {
             return emptyMap()
         }
 
-        val reNonPassingErrorLine = Regex("""^\[ERROR\]\s+([\w\d_]+)\.([\w\d_]+):(\d+)""")
+        val reNonPassingErrorLine = Regex("""^\[ERROR\]\s+([\w\d_]+)\.([\w\d_]+)""")
 
         // Step 2: Iterate errors and collect faulty lines per file
         for (errorLine in errors.lineSequence()) {

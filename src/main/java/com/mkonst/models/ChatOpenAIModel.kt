@@ -40,6 +40,13 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
                     logging = LoggingConfig(LogLevel.None),
                     timeout = Timeout(socket = 600.seconds),
             )
+        } else if (model !== null && (model.contains("mistral") || model.contains("codestral"))) {
+            this.client = OpenAI(
+                token = ConfigYate.getString("MISTRAL_API_KEY"),
+                host = OpenAIHost(ConfigYate.getString("MISTRAL_BASE_URL")),
+                logging = LoggingConfig(LogLevel.None),
+                timeout = Timeout(socket = 600.seconds),
+            )
         } else {
             this.client = OpenAI(
                     token = ConfigYate.getString("GPT_API_KEY"),

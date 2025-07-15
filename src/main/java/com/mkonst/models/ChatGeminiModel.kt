@@ -105,6 +105,10 @@ class ChatGeminiModel(private val modelName: String): ChatModel {
         return response
     }
 
+    /**
+     * The function will transform the Content instances of gen-ai library, to OpenAI's ChatMessage instances
+     * for cross-compatibility
+     */
     private fun transformHistoryToChatMessages(history: MutableList<Content>): MutableList<ChatMessage> {
         val newHistory = mutableListOf<ChatMessage>()
         for (historyItem in history) {
