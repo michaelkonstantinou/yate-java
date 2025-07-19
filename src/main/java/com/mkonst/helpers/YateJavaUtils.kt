@@ -241,6 +241,19 @@ object YateJavaUtils {
         return result
     }
 
+    fun countTestAnnotations(filePath: String): Int {
+        var counts = 0
+        val contentLines = YateIO.readFile(filePath).lines()
+
+        for (line in contentLines) {
+            if (line.contains("@Test")) {
+                counts += 1
+            }
+        }
+
+        return counts
+    }
+
     /**
      * Scans the given filepath, and returns the number of methods that contain the @Test annotation
      */
