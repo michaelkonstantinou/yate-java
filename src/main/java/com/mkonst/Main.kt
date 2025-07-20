@@ -45,9 +45,9 @@ object Main {
         println("Running YATE (Java)")
         initializeServices()
 
-        val cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/WebSocketStreamClientImpl.java"
+        val cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/rcv/src/main/java/network/brightspots/rcv/ContestConfig.java"
         val testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java"
-        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
+        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/rcv/"
         //        enhanceCoverage(repositoryPath, cut, testClassPath);
 //        YateStats.startTime("generation")
         generateTestForClass(repositoryPath, cut)

@@ -16,7 +16,7 @@ object YateJavaExecution {
     fun runTestsForErrors(repositoryPath: String, dependencyTool: DependencyTool, includeCompilingTests: Boolean = false): String? {
         return when (dependencyTool) {
             DependencyTool.MAVEN -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
-            DependencyTool.GRADLE -> runMavenTestsForErrors(repositoryPath, includeCompilingTests)
+            DependencyTool.GRADLE -> runGradleTestsForErrors(repositoryPath, includeCompilingTests)
             else -> throw Exception("Dependency tool $dependencyTool is not supported")
         }
     }
@@ -75,6 +75,50 @@ object YateJavaExecution {
                 }
 
                 errorLines.add(errorLine)
+            }
+        }
+
+        // If the code compiles, but the given parameters do not require errors from compiling tests,
+        // then no error log should be returned
+        if (isCodeCompiling && !includeCompilingTests) {
+            return null
+        }
+
+        return if (errorLines.isEmpty()) null else errorLines.joinToString("\n")
+    }
+
+    /**
+     * Runs the whole test suite in the given repository using gradle, and returns the error log
+     * Depending on the flag includeCompilingTests, the method will either return the compilation errors, or the
+     * errors from a compiling suite.
+     */
+    private fun runGradleTestsForErrors(repositoryPath: String, includeCompilingTests: Boolean = false): String? {
+        val gradlew = if (YateUtils.isWindowsMachine()) "gradlew.bat" else "./gradlew"
+        val command = listOf(gradlew, "clean", "test")
+        val processBuilder = ProcessBuilder(command)
+            .directory(File(repositoryPath))
+            .redirectErrorStream(true)
+
+        val process = processBuilder.start()
+        val reader = BufferedReader(InputStreamReader(process.inputStream))
+
+        // Iterate each line and collect the error lines
+        val errorLines = mutableListOf<String>()
+        var isCodeCompiling = true
+        var isInErrorMessageSection = false
+        reader.forEachLine { line ->
+            if (isInErrorMessageSection) {
+                val errorLine = line.trim()
+
+                if ("Compilation failed" in errorLine) {
+                    isCodeCompiling = false
+                }
+
+                errorLines.add(errorLine)
+            }
+
+            if (line.startsWith("* What went wrong")) {
+                isInErrorMessageSection = true
             }
         }
 

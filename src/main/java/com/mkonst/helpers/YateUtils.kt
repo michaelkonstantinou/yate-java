@@ -92,4 +92,11 @@ object YateUtils {
 
         return if (pomFile.exists() && pomFile.isFile) DependencyTool.MAVEN else DependencyTool.GRADLE
     }
+
+    /**
+     * Returns whether the current OS of the operating device is any version of Windows
+     */
+    fun isWindowsMachine(): Boolean {
+        return System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
+    }
 }
