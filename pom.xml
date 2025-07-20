@@ -162,15 +162,12 @@
             <version>1.7.0</version>
         </dependency>
 
-        <!-- Kotlin Compiler + PSI for Kotlin parsing -->
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-compiler-embeddable &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.jetbrains.kotlin</groupId>-->
-<!--            <artifactId>kotlin-compiler-embeddable</artifactId>-->
-<!--            <version>${kotlin.version}</version>-->
-<!--            <scope>runtime</scope>-->
-<!--        </dependency>-->
-
+        <!-- Kotlin compiler embeddable: includes parser and PSI -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-compiler-embeddable</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
