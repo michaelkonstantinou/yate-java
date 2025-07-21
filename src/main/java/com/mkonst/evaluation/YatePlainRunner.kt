@@ -14,8 +14,9 @@ import com.mkonst.types.YateResponse
 class YatePlainRunner(repositoryPath: String,
                       outputDirectory: String? = null,
                       modelName: String? = null,
-                      private val maxFixIterations: Int = 5): YateAbstractRunner(repositoryPath, ProgramLangType.JAVA, outputDirectory) {
-    private val simpleGenerator: YateUnitGenerator = SimpleUnitTestGenerator(modelName)
+                      private val maxFixIterations: Int = 5,
+                      lang: ProgramLangType = ProgramLangType.JAVA): YateAbstractRunner(repositoryPath, lang, outputDirectory) {
+    private val simpleGenerator: YateUnitGenerator = SimpleUnitTestGenerator(modelName, lang)
     private val simpleFixer: YatePlainErrorFixer = YatePlainErrorFixer(repositoryPath, dependencyTool, modelName)
 
     override fun generateTestsForClass(cutContainer: ClassContainer, testLevel: TestLevel): YateResponse {

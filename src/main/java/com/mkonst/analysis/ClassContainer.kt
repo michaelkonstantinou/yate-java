@@ -2,6 +2,7 @@ package com.mkonst.analysis
 
 import com.mkonst.analysis.java.JavaClassParser
 import com.mkonst.config.ConfigYate
+import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateIO
 import com.mkonst.interfaces.analysis.CodeClassParserInterface
 import com.mkonst.types.ClassBody
@@ -123,5 +124,14 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
 
         val outputFilepath: String = ConfigYate.getString("DIR_OUTPUT") + className + ".json"
         YateIO.writeFile(outputFilepath, jsonString)
+    }
+
+    /**
+     * Based on the given class under test, the method will generate the complete file path of the test (assuming this
+     * instance is the test class) and update the paths of this object to contain both: original cut path and test path
+     */
+    fun setPathsFromCut(cutContainer: ClassContainer) {
+        val testClassPath = YateCodeUtils.getTestClassPath(cutContainer, this, lang)
+        paths = ClassPathsContainer(cutContainer.paths.cut, testClassPath)
     }
 }

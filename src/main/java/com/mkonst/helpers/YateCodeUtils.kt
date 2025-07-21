@@ -1,9 +1,26 @@
 package com.mkonst.helpers
 
+import com.mkonst.analysis.ClassContainer
 import com.mkonst.types.ProgramLangType
 import java.io.File
 
 object YateCodeUtils {
+
+    /**
+     * Generates the complete path of the test class container based on the class that it tests.
+     * It will generate a path that follows the java conventions, which is the test class to be in the src/test
+     * directory and under the same directory names as the class under test
+     */
+    fun getTestClassPath(cutContainer: ClassContainer, testClassContainer: ClassContainer, lang: ProgramLangType = ProgramLangType.JAVA): String {
+        val testClassPath: String? = cutContainer.paths.cut
+        if (testClassPath === null) {
+            throw Exception("CutContainer requires the class path")
+        }
+
+        return testClassPath
+            .replace("src/main", "src/test")
+            .replace("${cutContainer.className}${lang.extension}", "${testClassContainer.className}${lang.extension}")
+    }
 
     @JvmStatic
     fun getClassPathFromQualifiedName(repositoryPath: String, className: String, lang: ProgramLangType = ProgramLangType.JAVA): String {

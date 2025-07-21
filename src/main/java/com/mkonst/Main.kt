@@ -10,6 +10,7 @@ import com.mkonst.helpers.YateJavaUtils.countTestMethods
 import com.mkonst.helpers.YateUtils.timestamp
 import com.mkonst.runners.YateJavaRunner
 import com.mkonst.services.PromptService
+import com.mkonst.types.ProgramLangType
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 import java.io.IOException
@@ -22,7 +23,7 @@ object Main {
     }
 
     fun generateTestForClass(repositoryPath: String, classPath: String) {
-        val runner = YateJavaRunner(repositoryPath, true, null, null)
+        val runner = YatePlainRunner(repositoryPath, null, null, 5, ProgramLangType.KOTLIN)
         runner.generate(classPath)
         runner.close()
     }
@@ -45,9 +46,9 @@ object Main {
         println("Running YATE (Java)")
         initializeServices()
 
-        val cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/rcv/src/main/java/network/brightspots/rcv/ContestConfig.java"
+        val cut = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/src/main/java/com/binance/connector/client/impl/SpotClientImpl.java"
         val testClassPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/src/test/java/org/flmelody/util/AntPathMatcherTest.java"
-        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/rcv/"
+        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/binance-connector-java-2.0.0/"
         //        enhanceCoverage(repositoryPath, cut, testClassPath);
 //        YateStats.startTime("generation")
         generateTestForClass(repositoryPath, cut)

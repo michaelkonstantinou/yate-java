@@ -12,25 +12,10 @@ import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.types.MethodBlock
 import com.mkonst.types.MethodPosition
+import com.mkonst.types.ProgramLangType
 import java.io.File
 
 object YateJavaUtils {
-
-    /**
-     * Generates the complete path of the test class container based on the class that it tests.
-     * It will generate a path that follows the java conventions, which is the test class to be in the src/test
-     * directory and under the same directory names as the class under test
-     */
-    fun getTestClassPath(cutContainer: ClassContainer, testClassContainer: ClassContainer): String {
-        val testClassPath: String? = cutContainer.paths.cut
-        if (testClassPath === null) {
-            throw Exception("CutContainer requires the class path")
-        }
-
-        return testClassPath
-                .replace("src/main", "src/test")
-                .replace("${cutContainer.className}.java", "${testClassContainer.className}.java")
-    }
 
     fun getTestClassDirectoryPath(classPath: String): String {
         return classPath.replace("src/main", "src/test")

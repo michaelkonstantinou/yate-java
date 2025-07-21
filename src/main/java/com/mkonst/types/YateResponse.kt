@@ -5,6 +5,7 @@ import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateIO
+import com.mkonst.providers.ClassContainerProvider
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -23,7 +24,7 @@ data class YateResponse(
             return
         }
 
-        val newTestClassContainer: ClassContainer = JavaClassContainer(testClassContainer.className, newBodyContent)
+        val newTestClassContainer: ClassContainer = ClassContainerProvider.getFromContent(testClassContainer.className, newBodyContent, testClassContainer.lang)
         newTestClassContainer.body.packageName = testClassContainer.body.packageName
         newTestClassContainer.appendImports(testClassContainer.body.imports)
         newTestClassContainer.appendRequiredImports()

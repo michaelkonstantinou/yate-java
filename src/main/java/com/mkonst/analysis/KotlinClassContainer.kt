@@ -1,6 +1,7 @@
 package com.mkonst.analysis
 
 import com.mkonst.analysis.java.JavaClassParser
+import com.mkonst.analysis.kotlin.KotlinClassParser
 import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateCodeUtils
 import com.mkonst.helpers.YateIO
@@ -11,7 +12,7 @@ import com.mkonst.types.ClassPathsContainer
 import com.mkonst.types.ProgramLangType
 
 
-class JavaClassContainer(className: String, bodyContent: String? = null) : ClassContainer(className, bodyContent, ProgramLangType.JAVA) {
+class KotlinClassContainer(className: String, bodyContent: String? = null) : ClassContainer(className, bodyContent, ProgramLangType.KOTLIN) {
 
     companion object {
         @JvmStatic
@@ -19,7 +20,7 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
             val className = YateIO.getClassNameFromPath(classPath)
             val classContent = YateIO.readFile(classPath)
 
-            val classContainer = JavaClassContainer(className, classContent)
+            val classContainer = KotlinClassContainer(className, classContent)
 
             // Check whether the class reflects a Test class or a regular class by checking its name and append its path
             if (className.endsWith("Test") && classPath.contains("test")) {
@@ -42,7 +43,7 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
 
         // Append package name (if available)
         if (body.packageName !== null) {
-            completeClassContent += "package ${body.packageName};\n\n"
+            completeClassContent += "package ${body.packageName}\n\n"
         }
 
         // Append import statements
@@ -69,7 +70,7 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
 
             if (!importStatement.startsWith("import")) {
                 if (importStatement.startsWith(".")) continue
-                completeStatement = "import $importStatement;"
+                completeStatement = "import $importStatement"
             } else {
                 if (importStatement.startsWith("import .")) continue
                 completeStatement = importStatement
@@ -86,13 +87,13 @@ class JavaClassContainer(className: String, bodyContent: String? = null) : Class
             return ClassBody()
         }
 
-        val bodyDecoded = JavaClassParser().getBodyDecoded(this.bodyContent)
+        val bodyDecoded = KotlinClassParser().getBodyDecoded(this.bodyContent)
 
         return bodyDecoded
     }
 
     override fun copy(): ClassContainer {
-        val newInstance: ClassContainer = JavaClassContainer(className, bodyContent)
+        val newInstance: ClassContainer = KotlinClassContainer(className, bodyContent)
         newInstance.body = this.body.copy()
         newInstance.paths = this.paths.copy()
 

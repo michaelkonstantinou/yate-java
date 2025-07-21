@@ -4,9 +4,10 @@ import com.mkonst.analysis.ClassContainer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.helpers.YateConsole
 import com.mkonst.services.PromptService
+import com.mkonst.types.ProgramLangType
 import com.mkonst.types.YateResponse
 
-class SimpleUnitTestGenerator(modelName: String? = null): YateUnitGenerator(modelName) {
+class SimpleUnitTestGenerator(modelName: String? = null, lang: ProgramLangType = ProgramLangType.JAVA): YateUnitGenerator(modelName, lang) {
 
     init {
         YateConsole.info("SimpleUnitTestGenerator initialized with model: $modelName")

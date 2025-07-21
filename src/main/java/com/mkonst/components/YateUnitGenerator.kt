@@ -2,12 +2,15 @@ package com.mkonst.components
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.analysis.KotlinClassContainer
 import com.mkonst.interfaces.YateUnitGeneratorInterface
+import com.mkonst.providers.ClassContainerProvider
 import com.mkonst.services.PromptService
 import com.mkonst.types.CodeResponse
+import com.mkonst.types.ProgramLangType
 import com.mkonst.types.YateResponse
 
-open class YateUnitGenerator(modelName: String? = null) : AbstractModelComponent(modelName), YateUnitGeneratorInterface {
+open class YateUnitGenerator(modelName: String? = null, private val lang: ProgramLangType = ProgramLangType.JAVA) : AbstractModelComponent(modelName), YateUnitGeneratorInterface {
 
     /**
      * Generates the Unit Test cases at a class-level. It requires a ClassContainer instance of the class under test
@@ -91,7 +94,7 @@ open class YateUnitGenerator(modelName: String? = null) : AbstractModelComponent
         val response: CodeResponse = model.ask(generationPrompts, systemPrompt)
 
         // Prepare a new ClassContainer for the generated test class
-        val testContainer = JavaClassContainer(newTestClassName, response.codeContent)
+        val testContainer = ClassContainerProvider.getFromContent(newTestClassName, response.codeContent, lang)
         testContainer.body.packageName = cutContainer.body.packageName
         testContainer.appendImports(cutContainer.body.imports)
 
