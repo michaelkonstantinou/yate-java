@@ -70,10 +70,10 @@ class KotlinClassContainer(className: String, bodyContent: String? = null) : Cla
 
             if (!importStatement.startsWith("import")) {
                 if (importStatement.startsWith(".")) continue
-                completeStatement = "import $importStatement"
+                completeStatement = "import $importStatement".trimEnd(';').replace(" static ", " ")
             } else {
                 if (importStatement.startsWith("import .")) continue
-                completeStatement = importStatement
+                completeStatement = importStatement.trimEnd(';').replace(" static ", " ")
             }
 
             if (!this.body.imports.contains(completeStatement)) {

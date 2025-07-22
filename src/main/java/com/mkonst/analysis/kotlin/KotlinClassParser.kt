@@ -27,7 +27,7 @@ class KotlinClassParser: CodeClassParserInterface {
 
         // Find the package name and the import statements
         val packageName: String? = ktFile.packageFqName.asString().takeIf { it.isNotEmpty() }
-        var imports: List<String> = ktFile.importList?.imports?.mapNotNull { it.importPath?.pathStr } ?: emptyList()
+        var imports: List<String> = ktFile.importList?.imports?.mapNotNull { it.text } ?: emptyList()
         imports = imports.toMutableList()
 
         val classDeclaration = ktFile.declarations.filterIsInstance<KtClassOrObject>().firstOrNull()
@@ -61,14 +61,18 @@ class KotlinClassParser: CodeClassParserInterface {
 
         Disposer.dispose(disposable)
 
-        return ClassBody(packageName, imports, methods, getCleanBodyContent(classContent, packageName, imports), hasConstructor)
+        return ClassBody(packageName,
+            imports,
+            methods,
+            getCleanBodyContent(classContent, packageName, imports),
+            hasConstructor)
     }
 
     private fun getCleanBodyContent(fullCode: String, packageName: String?, imports: MutableList<String>): String {
         var cleanContent = ""
 
         // 1. Remove package and import statements from class content
-        val linesToRemove: MutableList<String> = mutableListOf("package $packageName;")
+        val linesToRemove: MutableList<String> = mutableListOf("package $packageName")
         linesToRemove.addAll(imports)
         cleanContent = fullCode
             .lines()

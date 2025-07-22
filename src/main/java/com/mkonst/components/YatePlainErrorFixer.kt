@@ -21,7 +21,6 @@ class YatePlainErrorFixer(private var repositoryPath: String, private var depend
     
     fun fixErrors(response: YateResponse): Boolean {
         val errors: String? = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = true)
-
         if (errors === null) {
 
             return false

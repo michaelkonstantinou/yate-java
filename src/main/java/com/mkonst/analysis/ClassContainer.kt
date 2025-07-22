@@ -131,7 +131,7 @@ abstract class ClassContainer(val className: String, val bodyContent: String? = 
      * instance is the test class) and update the paths of this object to contain both: original cut path and test path
      */
     fun setPathsFromCut(cutContainer: ClassContainer) {
-        val testClassPath = YateCodeUtils.getTestClassPath(cutContainer, this, lang)
+        val testClassPath = YateCodeUtils.getTestClassPath(cutContainer, this)
         paths = ClassPathsContainer(cutContainer.paths.cut, testClassPath)
     }
 }

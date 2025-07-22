@@ -37,7 +37,7 @@ class YateRawRunner(
      * depending on the TestLevel provided
      */
     fun generate(classPath: String) {
-        val container = ClassContainerProvider.getFromFile(classPath, lang)
+        val container = ClassContainerProvider.getFromFile(classPath)
         val newClassName = container.className + "Test"
         val response = rawUnitGenerator.generateForClass(container)
         val testClassPath = classPath.replace("src/main", "src/test")

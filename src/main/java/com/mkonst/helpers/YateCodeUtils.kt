@@ -2,16 +2,34 @@ package com.mkonst.helpers
 
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.types.ProgramLangType
+import com.mkonst.types.exceptions.NotSupportedLanguageException
+import org.jetbrains.kotlin.codegen.intrinsics.Not
 import java.io.File
+import kotlin.jvm.Throws
 
 object YateCodeUtils {
+
+    /**
+     * Scans the class' content of a given class container,
+     * and returns the number of methods that contain the @Test annotation
+     */
+    @Throws(NotSupportedLanguageException::class)
+    fun countTestMethods(classContainer: ClassContainer): Int {
+        if (classContainer.lang == ProgramLangType.JAVA) {
+            return YateJavaUtils.countTestMethods(classContainer)
+        } else if (classContainer.lang == ProgramLangType.KOTLIN) {
+            return YateKotlinUtils.countTestMethods(classContainer)
+        }
+
+        throw NotSupportedLanguageException(classContainer.lang, "countTestMethods")
+    }
 
     /**
      * Generates the complete path of the test class container based on the class that it tests.
      * It will generate a path that follows the java conventions, which is the test class to be in the src/test
      * directory and under the same directory names as the class under test
      */
-    fun getTestClassPath(cutContainer: ClassContainer, testClassContainer: ClassContainer, lang: ProgramLangType = ProgramLangType.JAVA): String {
+    fun getTestClassPath(cutContainer: ClassContainer, testClassContainer: ClassContainer): String {
         val testClassPath: String? = cutContainer.paths.cut
         if (testClassPath === null) {
             throw Exception("CutContainer requires the class path")
@@ -19,7 +37,7 @@ object YateCodeUtils {
 
         return testClassPath
             .replace("src/main", "src/test")
-            .replace("${cutContainer.className}${lang.extension}", "${testClassContainer.className}${lang.extension}")
+            .replace("${cutContainer.className}${cutContainer.lang.extension}", "${testClassContainer.className}${testClassContainer.lang.extension}")
     }
 
     @JvmStatic
@@ -31,7 +49,6 @@ object YateCodeUtils {
         val classSimpleName = className.substring(lastDotIndex + 1)
 
         var possiblePath = "${repositoryPath}src/test/java/$packagePath/$classSimpleName${lang.extension}"
-        println(possiblePath)
         if (File(possiblePath).exists()) {
             return possiblePath
         }
@@ -69,7 +86,6 @@ object YateCodeUtils {
 
     @JvmStatic
     fun replaceOracleInLines(lines: MutableList<String>, lineNumber: Int, oldValue: String, newValue: String): MutableList<String> {
-        println("BEFORE: ${lines[lineNumber]}")
         val assertion = getAssertFunction(lines[lineNumber])
         when {
             assertion.contains("assertTrue") && newValue == "false" -> {
@@ -87,7 +103,6 @@ object YateCodeUtils {
             else -> lines[lineNumber] = lines[lineNumber].replaceFirst(oldValue, newValue)
         }
 
-        println("AFTER: ${lines[lineNumber]}")
         return lines
     }
 

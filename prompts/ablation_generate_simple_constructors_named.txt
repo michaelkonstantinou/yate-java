@@ -1,4 +1,4 @@
-The following class is missing unit tests on the constructors. Please generate all tests needed to achieve 100% code coverage for the constructors, using %%TEST_FRAMEWORK%%.
+The following class is missing unit tests on the constructors. Please generate all tests needed to achieve 100% code coverage for the constructors, using %%LANG%% and %%TEST_FRAMEWORK%%.
 The name of the generated test class must be %%CLASS_NAME%%. Return only the code
 
 %%CLASS_CONTENT%%

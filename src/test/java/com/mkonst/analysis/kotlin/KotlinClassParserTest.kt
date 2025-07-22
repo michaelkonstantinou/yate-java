@@ -13,7 +13,7 @@ class KotlinClassParserTest {
         val content: ClassBody = parser.getBodyDecoded(YateIO.readFile("src/test/dummyrepo/src/main/java/dummy/MyDummyKotlinClass.kt"))
 
         assertEquals("dummy", content.packageName)
-        assertContains(content.imports, "java.utils.String")
+        assertContains(content.imports, "import java.utils.String")
         assertFalse(content.hasConstructors)
     }
 }

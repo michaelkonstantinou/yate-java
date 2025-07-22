@@ -51,7 +51,7 @@ abstract class YateAbstractRunner(
             return results
         }
 
-        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
+        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath)
         var hasFailed: Boolean = false
 
         // Depending on the selected test level, generate a new test class (Saved in YateResponse)
@@ -163,7 +163,7 @@ abstract class YateAbstractRunner(
      */
     fun generate(classPath: String, methodName: String): MutableList<YateResponse> {
         val results: MutableList<YateResponse> = mutableListOf()
-        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
+        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath)
         var hasFailed: Boolean = false
         val response: YateResponse = generateTestsForMethod(cutContainer, methodName)
         response.testClassContainer.toTestFile()
@@ -190,8 +190,8 @@ abstract class YateAbstractRunner(
      * generated test class' path
      */
     fun fix(classPath: String, testClassPath: String) {
-        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
-        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
+        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath)
+        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath)
         val response = YateResponse(testContainer, mutableListOf())
 
         fixGeneratedTestClass(cutContainer, response)
@@ -201,7 +201,7 @@ abstract class YateAbstractRunner(
      * Invokes the process of fixing the non-passing oracles in the given test class
      */
     fun fixOracles(testClassPath: String) {
-        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
+        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath)
         val response = YateResponse(testContainer, mutableListOf())
 
         fixOraclesInTestClass(response)
@@ -213,8 +213,8 @@ abstract class YateAbstractRunner(
      * test suite. If mutPosition is given, then the coverage should be enhanced for the specific method under test
      */
     fun enhanceCoverage(classPath: String, testClassPath: String, mutPosition: MethodPosition? = null): YateResponse? {
-        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath, lang)
-        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath, lang)
+        val testContainer: ClassContainer = ClassContainerProvider.getFromFile(testClassPath)
+        val cutContainer: ClassContainer = ClassContainerProvider.getFromFile(classPath)
 
         var hasFailed = true
         var i = 0
@@ -303,7 +303,7 @@ abstract class YateAbstractRunner(
             response.testClassContainer.toTestFile()
 
             // It is still consider a failure if no tests are present in a test class
-            hasFailed = YateJavaUtils.countTestMethods(response.testClassContainer) <= 0
+            hasFailed = YateCodeUtils.countTestMethods(response.testClassContainer) <= 0
         } catch (e: Exception) {
             YateConsole.error("An error occurred when generating/fixing tests!")
             YateConsole.error(e.message ?: "")
