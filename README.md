@@ -13,6 +13,13 @@ The repository contains the core implementation of YATE. For the plugin, please 
 
 Further information coming soon...
 
+### Relevant paper
+
+[YATE: The Role of Test Repair in LLM-Based Unit Test Generation](https://arxiv.org/abs/2507.18316)
+
+If this repository or the linked paper helped you in anyway, please make sure to cite it
+
+
 ## Requirements
 
 > YATE is a research project, not an enterprise application. If your setup is not supported, please raise an issue and help us improve this tool
