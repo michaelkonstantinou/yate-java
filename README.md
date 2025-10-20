@@ -22,6 +22,8 @@ If this repository or the linked paper helped you in anyway, please make sure to
 
 ## Requirements
 
+For detailed setup instructions of .env, see the [Environment Setup Guide](./SETUP_ENV.md).
+
 > YATE is a research project, not an enterprise application. If your setup is not supported, please raise an issue and help us improve this tool
 
 The following libraries must be included in the **project under test**, in order for YATE to work
