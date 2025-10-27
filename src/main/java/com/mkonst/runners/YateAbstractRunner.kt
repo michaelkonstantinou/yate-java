@@ -123,33 +123,54 @@ abstract class YateAbstractRunner(
                 }
             }
             TestLevel.HYBRID -> {
-                this.generate(classPath, TestLevel.CLASS)
+                val classResponse = this.generate(classPath, TestLevel.CLASS)
+                if (classResponse.size <= 0) {
+                    YateConsole.warning("No class-level tests could be generated for: $classPath")
+                    YateConsole.debug("Moving on to method-level tests")
+
+                    return this.generate(classPath, TestLevel.METHOD)
+                }
+
+                // Writing class test and removing non-compiling and non-passing test
+                val classGeneratedResponse = classResponse.first()
+                classGeneratedResponse.testClassContainer.toTestFile()
+                this.removeNonCompilingTests(classGeneratedResponse)
+                this.removeNonPassingTests(classGeneratedResponse)
 
                 // Get uncovered methods and generate a test for each uncovered method
                 YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, true)
-                val uncoveredMethods = CoverageService.getNotFullyCoveredMethodsForClass(repositoryPath, cutContainer.getQualifiedName())
+
+                val uncoveredMethods: MutableList<MethodCoverage>
+                try {
+                    uncoveredMethods = CoverageService.getNotFullyCoveredMethodsForClass(repositoryPath, cutContainer.getQualifiedName()).toMutableList()
+                } catch (e: Exception) {
+                    YateConsole.error("Could not find coverage")
+                    YateUtils.moveGeneratedTestClass(classGeneratedResponse.testClassContainer, outputDirectory)
+                    throw e
+                }
+
                 var hasUncoveredConstructors = false
 
+                // Iterate all uncovered methods
                 for (method: MethodCoverage in uncoveredMethods) {
+
                     // Ignore constructors, but make sure this is flagged to generate tests for constructors next
                     if (method.name.contains("(Constructor)")) {
                         hasUncoveredConstructors = true
                         continue
                     }
 
-                    val response: YateResponse = generateTestsForMethod(cutContainer, method.name)
-                    response.testClassContainer.toTestFile()
-                    hasFailed = onValidation(cutContainer, response)
-
-                    if (!hasFailed) {
-                        results.add(response)
-                    }
+                    // Generate tests for given method
+                    results.addAll(this.generate(classPath, method.name))
                 }
 
                 // Generate tests for constructors if some of the uncovered methods is a constructor
                 if (hasUncoveredConstructors) {
                     this.generate(classPath, TestLevel.CONSTRUCTOR)
                 }
+
+                // Remove original generated test
+                YateUtils.moveGeneratedTestClass(classGeneratedResponse.testClassContainer, outputDirectory)
             }
         }
 
@@ -171,6 +192,8 @@ abstract class YateAbstractRunner(
 
         if (!hasFailed) {
             results.add(response)
+
+            // TODO: Narrow down to only method-level coverage augmentation
             val enhancedResponse: YateResponse? = this.enhanceCoverage(classPath, response.testClassContainer.paths.testClass!!)
 
             // Add enhanced response to results and remove generated test

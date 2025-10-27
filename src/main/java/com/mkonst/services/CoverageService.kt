@@ -89,6 +89,7 @@ object CoverageService {
     /**
      * Reads the jacoco html file for a specific class and returns a list of MethodCoverage instances that contain
      * information about methods with less than 100% branch coverage
+     * @throws IllegalArgumentException
      */
     fun getNotFullyCoveredMethodsForClass(repositoryPath: String, classQualifiedName: String): List<MethodCoverage> {
         val results: MutableList<MethodCoverage> = mutableListOf()

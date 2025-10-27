@@ -7,7 +7,7 @@ import org.jgrapht.graph.DefaultEdge
 
 class MethodCallGraph {
     // Create a directed graph
-    private val graph: Graph<ClassMethod, DefaultEdge> = DefaultDirectedGraph(DefaultEdge::class.java)
+    val graph: Graph<ClassMethod, DefaultEdge> = DefaultDirectedGraph(DefaultEdge::class.java)
 
     /**
      * Converts the given Strings into ClassMethod instances and appends a new edge. If the graph does not contain
