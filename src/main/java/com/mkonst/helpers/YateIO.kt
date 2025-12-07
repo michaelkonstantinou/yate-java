@@ -79,4 +79,32 @@ object YateIO {
 
         return null
     }
+
+    /**
+     * Copies a file to a different directory even if the subdirectories of the new path do not exist
+     *
+     * Returns the new path of the file if the operation was successful
+     */
+    fun copyFileToDirectory(sourcePath: String, destinationDir: String): String? {
+        try {
+            val sourceFile = File(sourcePath)
+            val targetDir = File(destinationDir)
+            val targetFile = File(targetDir, sourceFile.name)
+
+            // Ensure target directory exists. If not, create the missing directories
+            if (!targetDir.exists()) {
+                targetDir.mkdirs()
+            }
+
+            // Move the file
+            Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+
+            return targetFile.toPath().toString()
+        } catch (e: Exception) {
+            YateConsole.error("Exception thrown when moving file to directory")
+            e.printStackTrace()
+        }
+
+        return null
+    }
 }
