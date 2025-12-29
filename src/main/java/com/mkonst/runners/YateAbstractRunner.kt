@@ -123,20 +123,6 @@ abstract class YateAbstractRunner(
                 }
             }
             TestLevel.HYBRID -> {
-                val classResponse = this.generate(classPath, TestLevel.CLASS)
-                if (classResponse.size <= 0) {
-                    YateConsole.warning("No class-level tests could be generated for: $classPath")
-                    YateConsole.debug("Moving on to method-level tests")
-
-                    return this.generate(classPath, TestLevel.METHOD)
-                }
-
-                // Writing class test and removing non-compiling and non-passing test
-                val classGeneratedResponse = classResponse.first()
-                classGeneratedResponse.testClassContainer.toTestFile()
-                this.removeNonCompilingTests(classGeneratedResponse)
-                this.removeNonPassingTests(classGeneratedResponse)
-
                 // Get uncovered methods and generate a test for each uncovered method
                 YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, true)
 
@@ -145,7 +131,6 @@ abstract class YateAbstractRunner(
                     uncoveredMethods = CoverageService.getNotFullyCoveredMethodsForClass(repositoryPath, cutContainer.getQualifiedName()).toMutableList()
                 } catch (e: Exception) {
                     YateConsole.error("Could not find coverage")
-                    YateUtils.moveGeneratedTestClass(classGeneratedResponse.testClassContainer, outputDirectory)
                     throw e
                 }
 
@@ -161,16 +146,24 @@ abstract class YateAbstractRunner(
                     }
 
                     // Generate tests for given method
-                    results.addAll(this.generate(classPath, method.name))
+                    if (method.name.contains("static {...}")) {
+                        val newMethodName = method.name.replace("static {...}", "static")
+                        println("Using method name $newMethodName instead of ${method.name}")
+                        results.addAll(this.generate(classPath, newMethodName))
+                    } else if (method.name.contains("lambda$")) {
+                        val newMethodName = method.name.replace("$", "_")
+                        println("Using method name $newMethodName instead of ${method.name}")
+                        results.addAll(this.generate(classPath, newMethodName))
+                    } else {
+                        results.addAll(this.generate(classPath, method.name))
+                    }
+
                 }
 
                 // Generate tests for constructors if some of the uncovered methods is a constructor
                 if (hasUncoveredConstructors) {
                     this.generate(classPath, TestLevel.CONSTRUCTOR)
                 }
-
-                // Remove original generated test
-                YateUtils.moveGeneratedTestClass(classGeneratedResponse.testClassContainer, outputDirectory)
             }
         }
 
