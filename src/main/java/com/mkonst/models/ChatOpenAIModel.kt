@@ -28,32 +28,39 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
 
     init {
         if (model === null) {
-            this.model = ConfigYate.getString("GPT_MODEL")
+            YateConsole.info("Using default .env values")
+            this.model = ConfigYate.getString("API_MODEL")
+            this.client = OpenAI(
+                token = ConfigYate.getString("API_KEY"),
+                host = OpenAIHost(ConfigYate.getString("API_BASE_URL")),
+                logging = LoggingConfig(LogLevel.None),
+                timeout = Timeout(socket = 600.seconds),
+            )
+            println(this.model)
         } else {
             this.model = model
-        }
-
-        if (model !== null && model.contains("deepseek")) {
-            this.client = OpenAI(
+            if (model.contains("deepseek")) {
+                this.client = OpenAI(
                     token = ConfigYate.getString("DEEPSEEK_API_KEY"),
                     host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL")),
                     logging = LoggingConfig(LogLevel.None),
                     timeout = Timeout(socket = 600.seconds),
-            )
-        } else if (model !== null && (model.contains("mistral") || model.contains("codestral"))) {
-            this.client = OpenAI(
-                token = ConfigYate.getString("MISTRAL_API_KEY"),
-                host = OpenAIHost(ConfigYate.getString("MISTRAL_BASE_URL")),
-                logging = LoggingConfig(LogLevel.None),
-                timeout = Timeout(socket = 600.seconds),
-            )
-        } else {
-            this.client = OpenAI(
+                )
+            } else if (model.contains("mistral") || model.contains("codestral")) {
+                this.client = OpenAI(
+                    token = ConfigYate.getString("MISTRAL_API_KEY"),
+                    host = OpenAIHost(ConfigYate.getString("MISTRAL_BASE_URL")),
+                    logging = LoggingConfig(LogLevel.None),
+                    timeout = Timeout(socket = 600.seconds),
+                )
+            } else {
+                this.client = OpenAI(
                     token = ConfigYate.getString("GPT_API_KEY"),
                     organization = ConfigYate.getString("GPT_ORGANIZATION"),
                     logging = LoggingConfig(LogLevel.None),
                     timeout = Timeout(socket = 600.seconds),
-            )
+                )
+            }
         }
     }
 

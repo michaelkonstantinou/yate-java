@@ -63,10 +63,7 @@ class EvaluationDataset(val file: String? = null) {
         println(getTotalsText())
     }
 
-    /**
-     * Calculates a summary of all its values and returns a structured multiline text with the results
-     */
-    fun getTotalsText(): String {
+    fun getTotals(): MutableMap<String, Any> {
         var totalRequests = 0
         var totalGenerationRequests = 0
         var totalCompilingFixingRequests = 0
@@ -88,17 +85,36 @@ class EvaluationDataset(val file: String? = null) {
         val avgRequests = totalRequests.toFloat() / records.size
         val avgGenerationTime = totalGenerationTime.toFloat() / records.size
 
+        return mutableMapOf(
+            "totalRequests" to totalRequests,
+            "totalGenerationRequests" to totalGenerationRequests,
+            "totalCompilingFixingRequests" to totalCompilingFixingRequests,
+            "totalOracleFixingRequests" to totalOracleFixingRequests,
+            "totalCoverageEnhanceRequests" to totalCoverageEnhanceRequests,
+            "totalGeneratedTests" to totalGeneratedTests,
+            "totalGenerationTime" to totalGenerationTime,
+            "avgRequests" to avgRequests,
+            "avgGenerationTime" to avgGenerationTime,
+        )
+    }
+
+    /**
+     * Calculates a summary of all its values and returns a structured multiline text with the results
+     */
+    fun getTotalsText(): String {
+        val totals = this.getTotals()
+
         val output: StringBuilder = StringBuilder()
-        output.appendLine("Total Requests: $totalRequests")
-        output.appendLine("Total Generation Requests: $totalGenerationRequests")
-        output.appendLine("Total Compiling fixing Requests: $totalCompilingFixingRequests")
-        output.appendLine("Total Oracle fixing Requests: $totalOracleFixingRequests")
-        output.appendLine("Total Coverage enhancement Requests: $totalCoverageEnhanceRequests")
-        output.appendLine("Total Generated Tests: $totalGeneratedTests")
-        output.appendLine("Total Generation Time: $totalGenerationTime")
-        output.appendLine("Total Generation Time (human readable): ${YateUtils.formatMillisToMinSec(totalGenerationTime)}")
-        output.appendLine("Average Nr. Requests: ${YateUtils.formatDecimal(avgRequests)}")
-        output.appendLine("Average Generation Time: ${YateUtils.formatDecimal(avgGenerationTime)}")
+        output.appendLine("Total Requests: ${totals["totalRequests"]}")
+        output.appendLine("Total Generation Requests: ${totals["totalGenerationRequests"]}")
+        output.appendLine("Total Compiling fixing Requests: ${totals["totalCompilingFixingRequests"]}")
+        output.appendLine("Total Oracle fixing Requests: ${totals["totalOracleFixingRequests"]}")
+        output.appendLine("Total Coverage enhancement Requests: ${totals["totalCoverageEnhanceRequests"]}")
+        output.appendLine("Total Generated Tests: ${totals["totalGeneratedTests"]}")
+        output.appendLine("Total Generation Time: ${totals["totalGenerationTime"]}")
+        output.appendLine("Total Generation Time (human readable): ${YateUtils.formatMillisToMinSec(totals["totalGenerationTime"] as Long)}")
+        output.appendLine("Average Nr. Requests: ${YateUtils.formatDecimal(totals["avgRequests"] as Float)}")
+        output.appendLine("Average Generation Time: ${YateUtils.formatDecimal(totals["avgGenerationTime"] as Float)}")
 
         return output.toString()
     }
