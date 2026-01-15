@@ -1,5 +1,6 @@
 package com.mkonst.helpers
 
+import com.mkonst.config.ConfigYate
 import com.mkonst.types.DependencyTool
 import com.mkonst.types.OracleError
 import java.io.BufferedReader
@@ -51,7 +52,14 @@ object YateJavaExecution {
      * errors from a compiling suite.
      */
     private fun runMavenTestsForErrors(repositoryPath: String, includeCompilingTests: Boolean = false): String? {
-        val command = listOf("mvn", "clean", "test", "-Drat.skip=True")
+        var command = listOf("")
+        val runCommandPath: String? = ConfigYate.getStringOrNull("SCRIPT_RUN_TESTS")
+        if (runCommandPath !== null) {
+            command = listOf("zsh", "-i", "-c", runCommandPath)
+        } else {
+            command = listOf("mvn", "clean", "test", "-Drat.skip=True")
+        }
+
         val processBuilder = ProcessBuilder(command)
                 .directory(File(repositoryPath))
                 .redirectErrorStream(true)
