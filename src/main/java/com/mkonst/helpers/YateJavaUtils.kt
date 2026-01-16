@@ -9,10 +9,9 @@ import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.stmt.BlockStmt
 import com.github.javaparser.ast.stmt.Statement
 import com.mkonst.analysis.ClassContainer
-import com.mkonst.analysis.JavaClassContainer
+import com.mkonst.types.ClassBlock
 import com.mkonst.types.MethodBlock
 import com.mkonst.types.MethodPosition
-import com.mkonst.types.ProgramLangType
 import java.io.File
 
 object YateJavaUtils {
@@ -318,7 +317,64 @@ object YateJavaUtils {
         return methodPositions
     }
 
+    fun extractStaticClasses(source: String): List<ClassBlock> {
+        val results = mutableListOf<ClassBlock>()
 
+        // Regex that requires "static" in the class declaration
+        val classRegex = Regex(
+            """(?m)^\s*(public|protected|private|abstract|final|\s)*\s*static\s+(public|protected|private|abstract|final|\s)*\s*class\s+([A-Za-z_][A-Za-z0-9_]*)[^{]*\{"""
+        )
+
+        val lines = source.lines()
+
+        for (match in classRegex.findAll(source)) {
+            val className = match.groupValues[2]
+
+            // Calculate start index and line
+            val startIndex = match.range.first
+            val startLine = source.substring(0, startIndex).count { it == '\n' } + 1
+
+            // Find matching closing brace
+            var braceCount = 0
+            var endIndex = -1
+            var i = match.range.last
+
+            while (i < source.length) {
+                when (source[i]) {
+                    '{' -> braceCount++
+                    '}' -> {
+                        braceCount--
+                        if (braceCount == 0) {
+                            endIndex = i
+                            break
+                        }
+                    }
+                }
+                i++
+            }
+
+            if (endIndex != -1) {
+                val classBody = source.substring(match.range.first, endIndex + 1)
+                val endLine = source.substring(0, endIndex).count { it == '\n' } + 1
+
+                results.add(
+                    ClassBlock(
+                        name = className,
+                        startLine = startLine,
+                        endLine = endLine,
+                        body = classBody
+                    )
+                )
+            }
+        }
+
+        return results
+    }
+
+    /**
+     * The function uses Regex to find all methods in the source code and returns them as a list of MethodBlock
+     * Useful for parsing code that might not compile. If the code compiles, perhaps is best to avoid this function
+     */
     fun extractMethodsWithBodies(source: String): List<MethodBlock> {
         val lines = source.lines()
         val methods = mutableListOf<MethodBlock>()
@@ -374,5 +430,9 @@ object YateJavaUtils {
 
     fun findMethodByLineNumber(methods: List<MethodBlock>, lineNumber: Int): MethodBlock? {
         return methods.find { lineNumber in it.startLine..it.endLine }
+    }
+
+    fun findClassByLineNumber(classes: List<ClassBlock>, lineNumber: Int): ClassBlock? {
+        return classes.find { lineNumber in it.startLine..it.endLine }
     }
 }

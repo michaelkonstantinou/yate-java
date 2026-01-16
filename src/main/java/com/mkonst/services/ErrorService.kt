@@ -57,15 +57,16 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonCompilingClassesRegex(dependencyTool: DependencyTool): Pair<Map<String, MutableSet<String>>, Map<String, MutableSet<String>>> {
+    fun findNonCompilingClassesRegex(dependencyTool: DependencyTool): Triple<Map<String, MutableSet<String>>, Map<String, MutableSet<String>>, Map<String, MutableSet<String>>> {
         // Step 1: Run tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = false)
         if (errors == null) {
-            return Pair(emptyMap(), emptyMap())
+            return Triple(emptyMap(), emptyMap(), emptyMap())
         }
 
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
         val importsByTestClass = mutableMapOf<String, MutableSet<String>>()
+        val staticClassesByTestClass = mutableMapOf<String, MutableSet<String>>()
 
         // Step 1: Iterate errors and collect faulty lines per file
         val errorLinesByFile: MutableMap<String, MutableSet<Int>> = groupErrorLinesByFile(errors)
@@ -77,13 +78,22 @@ class ErrorService(private val repositoryPath: String) {
             if (filename.contains("/src/test/")) {
 
                 // Get all available methods and their bodies using Regex
-                val availableMethods = YateJavaUtils.extractMethodsWithBodies(YateIO.readFile(filename))
+                val sourceCode = YateIO.readFile(filename)
+                val availableMethods = YateJavaUtils.extractMethodsWithBodies(sourceCode)
+                val availableStaticClasses = YateJavaUtils.extractStaticClasses(sourceCode)
+
                 for (errorLine in errorLines) {
-                    var methodBody = YateJavaUtils.findMethodByLineNumber(availableMethods, errorLine)
+                    val methodBody = YateJavaUtils.findMethodByLineNumber(availableMethods, errorLine)
 
                     if (methodBody !== null) {
                         val methods = testsByTestClass.getOrPut(filename) { mutableSetOf() }
                         methods.add(methodBody.body)
+                    } else {
+                        val classBody = YateJavaUtils.findClassByLineNumber(availableStaticClasses, errorLine)
+                        if (classBody !== null) {
+                            val staticClasses = staticClassesByTestClass.getOrPut(filename) { mutableSetOf() }
+                            staticClasses.add(classBody.body)
+                        }
                     }
                 }
 
@@ -96,7 +106,7 @@ class ErrorService(private val repositoryPath: String) {
             }
         }
 
-        return Pair(testsByTestClass, importsByTestClass)
+        return Triple(testsByTestClass, importsByTestClass, staticClassesByTestClass)
     }
 
     /**
