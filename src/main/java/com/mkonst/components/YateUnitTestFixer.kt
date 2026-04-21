@@ -6,6 +6,7 @@ import com.mkonst.analysis.MethodCallGraph
 import com.mkonst.analysis.java.JavaArgumentsAnalyzer
 import com.mkonst.analysis.java.JavaInvocationsAnalyzer
 import com.mkonst.analysis.java.JavaMethodProvider
+import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.helpers.YateJavaUtils
@@ -79,6 +80,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
      * and asks the model to fix the tests
      */
     fun fixUsingExternalConstructors(cutQualifiedName: String, response: YateResponse): YateResponse {
+        YateStats.addCount("fix_using_external_constructors_called")
         val suggestions: String? = argumentsAnalyzer.getClassesInArgumentsLog(cutQualifiedName)
 
         // If suggestions are not found, then this procedure ends here without any changes to the test class
@@ -93,6 +95,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
         val promptVars = hashMapOf("CONTENT" to suggestions)
         val prompt = PromptService.get("fix_with_external_constructors", promptVars)
 
+        YateStats.addCount("fix_using_external_constructors_used")
         return generateNewTestClass(mutableListOf(prompt), response)
     }
 
@@ -102,6 +105,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
      * If the log is empty (no wrong invocations found), the method returns the current implementation
      */
     fun fixWrongMethodInvocations(response: YateResponse): YateResponse {
+        YateStats.addCount("fix_wrong_methods_called")
         val wrongMethodUsages: String? = invocationsAnalyzer.getAllWrongUsagesLog(response.testClassContainer.getQualifiedName())
         if (wrongMethodUsages === null) {
             response.hasChanges = false
@@ -112,6 +116,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
         // Prepare a prompt that will include the wrong method invocations and ask the LLM to fix them
         val prompt: String = PromptService.get("fix_wrong_method_invocations") + wrongMethodUsages
 
+        YateStats.addCount("fix_wrong_methods_used")
         return generateNewTestClass(mutableListOf(prompt), response)
     }
 
@@ -120,6 +125,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
      * code snippets that are useful to the LLM to fix the generated tests
      */
     fun fixUsingExternalMethods(cutContainer: ClassContainer, response: YateResponse): YateResponse {
+        YateStats.addCount("fix_using_external_methods_called")
         val instructionMethodCalls: StringBuilder = StringBuilder()
         val instructionImplementations: StringBuilder = StringBuilder()
 
@@ -156,6 +162,7 @@ class YateUnitTestFixer(private var repositoryPath: String, private var packageN
                 "METHOD_IMPLEMENTATIONS" to instructionImplementations.toString())
         val prompt = PromptService.get("fix_broken_tests_from_method_calls", promptVars)
 
+        YateStats.addCount("fix_using_external_methods_used")
         return generateNewTestClass(mutableListOf(prompt), response)
     }
 

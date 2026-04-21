@@ -7,6 +7,7 @@ import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.RequestsCounter
 import com.mkonst.evaluation.YateStats
+import com.mkonst.evaluation.ablation.SimpleUnitTestGenerator
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.types.MethodPosition
@@ -14,16 +15,15 @@ import com.mkonst.types.ProgramLangType
 import com.mkonst.types.TestLevel
 import com.mkonst.types.YateResponse
 
-open class YateJavaRunner(
+open class PlainWithRepairRunner(
     repositoryPath: String,
     private val includeOracleFixing: Boolean = true,
     outputDirectory: String? = null,
     modelName: String? = null
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
-    protected val yateGenerator: YateUnitGenerator = YateUnitGenerator(modelName)
-    protected var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool, modelName)
-    protected var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
-    protected val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath, modelName)
+    private val yateGenerator: YateUnitGenerator = SimpleUnitTestGenerator(modelName, lang)
+    private var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool, modelName)
+    private var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
     private val importsAnalyzer: JavaImportsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
     private val parser: JavaClassParser = JavaClassParser()
 
@@ -121,16 +121,7 @@ open class YateJavaRunner(
         testClassContainer: ClassContainer,
         methodPosition: MethodPosition?
     ): YateResponse? {
-        try {
-            YateConsole.debug("Enhancing branch coverage for class ${cutContainer.className}, based on test ${testClassContainer.className}")
-
-            // Execute tests before attempting to enhance coverage
-            isCompiling()
-            return yateCoverageEnhancer.generateTestsForBranchCoverage(cutContainer, testClassContainer, methodPosition)
-        } catch (e: Exception) {
-            return null
-        }
-
+        return null
     }
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
@@ -175,22 +166,19 @@ open class YateJavaRunner(
         yateGenerator.closeConnection()
         yateTestFixer.closeConnection()
         yateOracleFixer.closeConnection()
-        yateCoverageEnhancer.closeConnection()
     }
 
     override fun getNrRequests(): RequestsCounter {
         return RequestsCounter(
             yateGenerator.getNrRequests(),
             yateTestFixer.getNrRequests(),
-            yateOracleFixer.getNrRequests(),
-            yateCoverageEnhancer.getNrRequests())
+            yateOracleFixer.getNrRequests())
     }
 
     override fun resetNrRequests() {
         yateGenerator.resetNrRequests()
         yateTestFixer.resetNrRequests()
         yateOracleFixer.resetNrRequests()
-        yateCoverageEnhancer.resetNrRequests()
     }
 
     /**
@@ -249,7 +237,6 @@ open class YateJavaRunner(
 
     private fun fixFromErrorLog(response: YateResponse): YateResponse {
         for (i in 1..ConfigYate.getInteger("MAX_FIX_ITERATIONS")) {
-            YateStats.addCount("fix_from_error_log")
             YateConsole.debug("Running tests and attempt to fix them using the error log")
             yateTestFixer.fixTestsFromErrorLog(response, i == 1)
 

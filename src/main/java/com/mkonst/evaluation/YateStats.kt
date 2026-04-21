@@ -63,6 +63,10 @@ object YateStats {
     }
 
     fun save(outputFilepath: String = "yate_stats.txt") {
+        YateIO.writeFile(outputFilepath, this.toString())
+    }
+
+    override fun toString(): String {
         val content: StringBuilder = StringBuilder()
         for (stat in this.timeStats) {
             content.appendLine("${stat.key}: ${YateUtils.formatMillisToMinSec(stat.value)}")
@@ -72,7 +76,7 @@ object YateStats {
             content.appendLine("${count.key}: ${count.value}")
         }
 
-        YateIO.writeFile(outputFilepath, content.toString())
+        return content.toString()
     }
 
     /**

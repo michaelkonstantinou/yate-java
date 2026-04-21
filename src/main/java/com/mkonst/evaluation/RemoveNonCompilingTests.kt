@@ -1,9 +1,11 @@
 package com.mkonst.evaluation
 
+import com.mkonst.config.ConfigYate
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateIO
 import com.mkonst.services.ErrorService
 import com.mkonst.services.PiTestService
+import com.mkonst.services.PromptService
 import com.mkonst.types.DependencyTool
 import com.mkonst.types.coverage.MutationScore
 
@@ -11,9 +13,14 @@ object RemoveNonCompilingTests {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/chesslib/"
+        ConfigYate.initialize(".env")
+        PromptService.initialize()
+
+        val repositoryPath = "/Users/michael.konstantinou/Datasets/yate_evaluation/windward/"
         val errorService = ErrorService(repositoryPath)
-        val (filepathsByMethods, filepathsByImports) = errorService.findNonCompilingClassesRegex(DependencyTool.MAVEN)
+        val (filepathsByMethods, filepathsByImports, filepathsByStaticClasses) = errorService.findNonCompilingClassesRegex(DependencyTool.MAVEN)
+        println(filepathsByStaticClasses)
+        System.exit(0)
 
         // Remove invalid methods
         var totalRemovedMethods = 0
