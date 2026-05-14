@@ -315,6 +315,18 @@ abstract class YateAbstractRunner(
         }
     }
 
+    /**
+     * Returns whether the repository contains any compilation errors when the test suite is run
+     */
+    protected fun isCompiling(): Boolean {
+        if (lang != ProgramLangType.JAVA) {
+            YateConsole.error("PROGRAMMING LANGUAGE NOT SUPPORTED FOR CHECKING COMPILATION ERRORS")
+            return true
+        }
+
+        return YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool) === null
+    }
+
     private fun onValidation(cutContainer: ClassContainer, response: YateResponse): Boolean {
         var hasFailed = false
 

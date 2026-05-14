@@ -240,13 +240,6 @@ open class YateJavaRunner(
         return response
     }
 
-    /**
-     * Returns whether the repository contains any compilation errors when the test suite is run
-     */
-    protected fun isCompiling(): Boolean {
-        return YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool) === null
-    }
-
     private fun fixFromErrorLog(response: YateResponse): YateResponse {
         for (i in 1..ConfigYate.getInteger("MAX_FIX_ITERATIONS")) {
             YateStats.addCount("fix_from_error_log")
