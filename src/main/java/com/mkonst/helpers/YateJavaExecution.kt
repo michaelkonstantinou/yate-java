@@ -55,6 +55,14 @@ object YateJavaExecution {
         var command = listOf("")
         val runCommandPath: String? = ConfigYate.getStringOrNull("SCRIPT_RUN_TESTS")
         if (runCommandPath !== null) {
+
+            // Checks if the specified file to run tests actually exists
+            if (!File(runCommandPath).exists()) {
+                YateConsole.error("You specified a script to run tests under the flag SCRIPT_RUN_TESTS. Such file does NOT exist! Filepath mentioned: $runCommandPath")
+                YateConsole.warning("Keep in mind that the .env file does NOT require quotes (\") for string values")
+                throw Exception("SCRIPT_RUN_TESTS path does not exist: $runCommandPath")
+            }
+
             command = listOf("zsh", "-i", "-c", runCommandPath)
         } else {
             command = listOf("mvn", "clean", "test", "-Drat.skip=True")
