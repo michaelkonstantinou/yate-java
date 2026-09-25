@@ -66,4 +66,12 @@ class YateOnlyGenerationRunner(repositoryPath: String,
     override fun resetNrRequests() {
         simpleTestGenerator.resetNrRequests()
     }
+
+    override fun getTotalTokens(): Int {
+        return simpleTestGenerator.getTotalTokens()
+    }
+
+    override fun resetTokensCount() {
+        simpleTestGenerator.resetTotalTokens()
+    }
 }

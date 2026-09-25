@@ -5,6 +5,8 @@ import com.mkonst.types.CodeResponse
 
 interface ChatModel {
     var nrRequests: Int
+    var nrInputTokens: Int
+    var nrOutputTokens: Int
 
     /**
      * Executes a request to the model, decodes the result into a code snippet and returns its value

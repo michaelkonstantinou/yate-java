@@ -18,6 +18,9 @@ import java.util.concurrent.TimeUnit
 
 class ChatOllamaModel(private val model: String): ChatModel {
     override var nrRequests: Int = 0
+    // TODO: UPDATE THE TOKEN COUNT IN EACH ITERATION
+    override var nrInputTokens: Int = 0
+    override var nrOutputTokens: Int = 0
     private val ollamaChatUrl = ConfigYate.getString("OLLAMA_CHAT_URL")
     private val jsonParser = Json {
         ignoreUnknownKeys = true

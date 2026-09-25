@@ -273,6 +273,10 @@ abstract class YateAbstractRunner(
 
     abstract fun resetNrRequests()
 
+    abstract fun getTotalTokens(): Int
+
+    abstract fun resetTokensCount()
+
     /**
      * Executes the tests and finds the ones that did not compile
      * Based on the YateResponse's class, it will remove the tests that are relevant to the generated test class

@@ -181,6 +181,18 @@ open class PlainWithRepairRunner(
         yateOracleFixer.resetNrRequests()
     }
 
+    override fun getTotalTokens(): Int {
+        return yateGenerator.getTotalTokens() +
+                yateTestFixer.getTotalTokens() +
+                yateOracleFixer.getTotalTokens()
+    }
+
+    override fun resetTokensCount() {
+        yateGenerator.resetTotalTokens()
+        yateTestFixer.resetTotalTokens()
+        yateOracleFixer.resetTotalTokens()
+    }
+
     /**
      * For each import statement in the testClassContainer of the response, the method leverages the ImportsAnalyzer
      * to check for import statements that do not reflect a valid class in the repository
@@ -196,6 +208,7 @@ open class PlainWithRepairRunner(
 
         if (originalNumberOfImports - newNumberOfImports > 0) {
             YateConsole.debug("${originalNumberOfImports - newNumberOfImports} imports were filtered out due to wrong syntax")
+            YateStats.addCount("removed_invalid_syntax_imports", originalNumberOfImports - newNumberOfImports)
         }
 
         // Filter out import statements that do not belong to the package (but follow the same prefix)
@@ -204,6 +217,7 @@ open class PlainWithRepairRunner(
         if (invalidImports.size > 0) {
             YateConsole.debug("The following imports are invalid and are being removed: ${invalidImports.joinToString()}")
             response.testClassContainer.removeImports(invalidImports)
+            YateStats.addCount("removed_invalid_package_imports", invalidImports.size)
 
             return true
         }

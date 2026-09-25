@@ -23,4 +23,13 @@ abstract class AbstractModelComponent(modelName: String? = null) {
     open fun closeConnection() {
         this.model.closeConnection()
     }
+
+    open fun getTotalTokens(): Int {
+        return model.nrInputTokens + model.nrOutputTokens
+    }
+
+    open fun resetTotalTokens() {
+        model.nrInputTokens = 0
+        model.nrOutputTokens = 0
+    }
 }

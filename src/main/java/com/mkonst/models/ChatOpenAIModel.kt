@@ -23,6 +23,8 @@ import kotlin.time.Duration.Companion.seconds
 
 class ChatOpenAIModel(model: String? = null): ChatModel {
     override var nrRequests: Int = 0
+    override var nrInputTokens: Int = 0
+    override var nrOutputTokens: Int = 0
     private lateinit var model: String
     private var client: OpenAI
 
@@ -112,7 +114,7 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
     private suspend fun executeRequest(conversation: MutableList<ChatMessage>, maxIterations: Int): String? {
         val chatCompletionRequest = ChatCompletionRequest(
             model = ModelId(this.model),
-            temperature = 0.1,
+            temperature = ConfigYate.getDouble("TEMPERATURE"),
             messages = conversation
         )
 
@@ -121,6 +123,7 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
         while (executedIterations < maxIterations) {
             try {
                 val completion: ChatCompletion = client.chatCompletion(chatCompletionRequest)
+                updateTokenCount(completion)
 
                 return completion.choices.first().message.content
             } catch (e: InvalidRequestException) {
@@ -140,5 +143,21 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
         }
 
         return null
+    }
+
+    /**
+     * Updates the variables that store the number of tokens used
+     * By definition, OpenAI counts the whole history as "input tokens", meaning, system prompts, user messages and
+     * basically the whole interaction you had so far.
+     * As "output tokens", the recent response is counted.
+     */
+    private fun updateTokenCount(completion: ChatCompletion) {
+        val usage = completion.usage
+        if (usage != null) {
+
+            // Note: Input tokens need to set, as in each response the whole history is being counted as "input tokens"
+            this.nrInputTokens = usage.promptTokens!!
+            this.nrOutputTokens += usage.completionTokens!!
+        }
     }
 }

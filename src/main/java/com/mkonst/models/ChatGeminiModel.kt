@@ -20,6 +20,10 @@ import com.mkonst.types.genai.GenAIRole
 
 class ChatGeminiModel(private val modelName: String): ChatModel {
     override var nrRequests: Int = 0
+
+    // TODO: UPDATE THE TOKEN COUNT IN EACH ITERATION
+    override var nrInputTokens: Int = 0
+    override var nrOutputTokens: Int = 0
     private val client: Client = Client.builder().apiKey(ConfigYate.getString("GOOGLE_API_KEY")).build()
     private var config: GenerateContentConfig.Builder
 

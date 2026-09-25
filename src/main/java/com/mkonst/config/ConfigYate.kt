@@ -36,6 +36,11 @@ object ConfigYate {
         return properties!!.getProperty(name).toInt()
     }
 
+    @JvmStatic
+    fun getDouble(name: String): Double {
+        return properties!!.getProperty(name).toDouble()
+    }
+
     fun getArray(name: String): Array<String> {
         val joinedItems = properties!!.getProperty(name)
 

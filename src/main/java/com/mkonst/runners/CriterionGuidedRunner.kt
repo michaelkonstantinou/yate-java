@@ -104,4 +104,16 @@ class CriterionGuidedRunner(repositoryPath: String,
         simpleFixer.resetNrRequests()
         coverageEnhancer.resetNrRequests()
     }
+
+    override fun getTotalTokens(): Int {
+        return simpleGenerator.getTotalTokens() +
+                simpleFixer.getTotalTokens() +
+                coverageEnhancer.getTotalTokens()
+    }
+
+    override fun resetTokensCount() {
+        simpleGenerator.resetTotalTokens()
+        simpleFixer.resetTotalTokens()
+        coverageEnhancer.resetTotalTokens()
+    }
 }

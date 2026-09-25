@@ -193,6 +193,20 @@ open class YateJavaRunner(
         yateCoverageEnhancer.resetNrRequests()
     }
 
+    override fun getTotalTokens(): Int {
+        return yateGenerator.getTotalTokens() +
+                yateTestFixer.getTotalTokens() +
+                yateOracleFixer.getTotalTokens() +
+                yateCoverageEnhancer.getTotalTokens()
+    }
+
+    override fun resetTokensCount() {
+        yateGenerator.resetTotalTokens()
+        yateTestFixer.resetTotalTokens()
+        yateOracleFixer.resetTotalTokens()
+        yateCoverageEnhancer.resetTotalTokens()
+    }
+
     /**
      * For each import statement in the testClassContainer of the response, the method leverages the ImportsAnalyzer
      * to check for import statements that do not reflect a valid class in the repository

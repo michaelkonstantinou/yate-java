@@ -83,4 +83,13 @@ class YatePlainRunner(repositoryPath: String,
         simpleGenerator.resetNrRequests()
         simpleFixer.resetNrRequests()
     }
+
+    override fun getTotalTokens(): Int {
+        return simpleGenerator.getTotalTokens() + simpleFixer.getTotalTokens()
+    }
+
+    override fun resetTokensCount() {
+        simpleGenerator.resetTotalTokens()
+        simpleFixer.resetTotalTokens()
+    }
 }
