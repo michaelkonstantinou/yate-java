@@ -26,7 +26,11 @@ class EvaluationDataset(val file: String? = null) {
                     outputDir = row["outputDir"],
                     modelName = row["modelName"],
                     generatedTests = row["generatedTests"]?.toIntOrNull() ?: 0,
-                    totalTokens = row["totalTokens"]?.toIntOrNull() ?: 0
+                    totalTokens = TokensCounter(
+                        row["inputTokens"]?.toLongOrNull() ?: 0L,
+                        row["outputTokens"]?.toLongOrNull() ?: 0L,
+                        row["totalTokens"]?.toLongOrNull() ?: 0L
+                    )
                 )
                 records.add(record)
             }
@@ -34,7 +38,7 @@ class EvaluationDataset(val file: String? = null) {
     }
 
     fun saveAs(filename: String) {
-        val header = listOf("repositoryPath", "classPath", "testLevel", "generationRequests", "compilationFixRequests", "oracleFixRequests", "coverageEnhancementRequests", "fixRequests", "totalRequests", "generationTime", "isExecuted", "errors", "outputDir", "modelName", "generatedTests", "totalTokens")
+        val header = listOf("repositoryPath", "classPath", "testLevel", "generationRequests", "compilationFixRequests", "oracleFixRequests", "coverageEnhancementRequests", "fixRequests", "totalRequests", "generationTime", "isExecuted", "errors", "outputDir", "modelName", "generatedTests", "inputTokens", "outputTokens", "totalTokens")
 
         csvWriter().open(File(filename)) {
             writeRow(header)
@@ -55,7 +59,9 @@ class EvaluationDataset(val file: String? = null) {
                     record.outputDir,
                     record.modelName,
                     record.generatedTests,
-                    record.totalTokens
+                    record.totalTokens.input,
+                    record.totalTokens.output,
+                    record.totalTokens.total,
                 )
             }
         }
@@ -73,7 +79,9 @@ class EvaluationDataset(val file: String? = null) {
         var totalCoverageEnhanceRequests = 0
         var totalGenerationTime = 0L
         var totalGeneratedTests = 0
-        var allTotalTokens = 0
+        var totalInputTokens = 0L
+        var totalOutputTokens = 0L
+        var totalTotalTokens = 0L
 
         records.forEach { record ->
             totalRequests += record.requests.total
@@ -83,7 +91,9 @@ class EvaluationDataset(val file: String? = null) {
             totalCoverageEnhanceRequests += record.requests.coverageEnhancement
             totalGeneratedTests += record.generatedTests
             totalGenerationTime += record.generationTime
-            allTotalTokens += record.totalTokens ?: 0
+            totalInputTokens += record.totalTokens.input
+            totalOutputTokens += record.totalTokens.output
+            totalTotalTokens += record.totalTokens.total
         }
 
         val avgRequests = totalRequests.toFloat() / records.size
@@ -95,7 +105,9 @@ class EvaluationDataset(val file: String? = null) {
             "totalCompilingFixingRequests" to totalCompilingFixingRequests,
             "totalOracleFixingRequests" to totalOracleFixingRequests,
             "totalCoverageEnhanceRequests" to totalCoverageEnhanceRequests,
-            "allTotalTokens" to allTotalTokens,
+            "totalInputTokens" to totalInputTokens,
+            "totalOutputTokens" to totalOutputTokens,
+            "totalTotalTokens" to totalTotalTokens,
             "totalGeneratedTests" to totalGeneratedTests,
             "totalGenerationTime" to totalGenerationTime,
             "avgRequests" to avgRequests,
@@ -115,7 +127,9 @@ class EvaluationDataset(val file: String? = null) {
         output.appendLine("Total Compiling fixing Requests: ${totals["totalCompilingFixingRequests"]}")
         output.appendLine("Total Oracle fixing Requests: ${totals["totalOracleFixingRequests"]}")
         output.appendLine("Total Coverage enhancement Requests: ${totals["totalCoverageEnhanceRequests"]}")
-        output.appendLine("Total Tokens: ${totals["allTotalTokens"]}")
+        output.appendLine("Input Tokens: ${totals["totalInputTokens"]}")
+        output.appendLine("Output Tokens: ${totals["totalOutputTokens"]}")
+        output.appendLine("Total Tokens: ${totals["totalTotalTokens"]}")
         output.appendLine("Total Generated Tests: ${totals["totalGeneratedTests"]}")
         output.appendLine("Total Generation Time: ${totals["totalGenerationTime"]}")
         output.appendLine("Total Generation Time (human readable): ${YateUtils.formatMillisToMinSec(totals["totalGenerationTime"] as Long)}")

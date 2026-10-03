@@ -1,12 +1,12 @@
 package com.mkonst.interfaces
 
 import com.aallam.openai.api.chat.ChatMessage
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.types.CodeResponse
 
 interface ChatModel {
     var nrRequests: Int
-    var nrInputTokens: Int
-    var nrOutputTokens: Int
+    var tokensCounter: TokensCounter
 
     /**
      * Executes a request to the model, decodes the result into a code snippet and returns its value

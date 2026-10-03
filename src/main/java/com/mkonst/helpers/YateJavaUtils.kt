@@ -4,6 +4,7 @@ import com.github.javaparser.JavaParser
 import com.github.javaparser.ParseProblemException
 import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.expr.MethodCallExpr
 import com.github.javaparser.ast.stmt.BlockStmt
@@ -212,12 +213,37 @@ object YateJavaUtils {
     /**
      * Finds and returns the import statements that the given line numbers correspond to (checks whether are imports)
      */
-    fun findImportsFromLineNumbers(file: File, lineNumbers: Set<Int>): Set<String> {
+    fun findImportsFromLineNumbers(lineNumbers: Set<Int>, contentLines: List<String>): Set<String> {
         val result = mutableSetOf<String>()
-        val contentLines = YateIO.readFile(file.path).lines()
 
         for (line in lineNumbers) {
             if (contentLines[line - 1].trimIndent().startsWith("import")) {
+                result.add(contentLines[line - 1])
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * The function will return a set of field declarations that appear in the error log. It will return the line to
+     * remove
+     */
+    fun findFieldDeclarationsFromLineNumbers(file: File, lineNumbers: Set<Int>, contentLines: List<String>): Set<String> {
+        val result = mutableSetOf<String>()
+        val compilationUnit = StaticJavaParser.parse(file)
+
+        // Find all field declarations in the file
+        val fields = compilationUnit.findAll(FieldDeclaration::class.java)
+        for (line in lineNumbers) {
+            // Check if this line number falls within any field declaration's range
+            val isField = fields.any { field ->
+                val beginLine = field.begin.map { it.line }.orElse(-1)
+                val endLine = field.end.map { it.line }.orElse(-1)
+                line in beginLine..endLine
+            }
+
+            if (isField) {
                 result.add(contentLines[line - 1])
             }
         }

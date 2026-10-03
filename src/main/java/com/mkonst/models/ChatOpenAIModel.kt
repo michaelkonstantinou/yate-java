@@ -12,6 +12,7 @@ import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIHost
 import com.mkonst.config.ConfigYate
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole
 import com.mkonst.interfaces.ChatModel
@@ -23,8 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class ChatOpenAIModel(model: String? = null): ChatModel {
     override var nrRequests: Int = 0
-    override var nrInputTokens: Int = 0
-    override var nrOutputTokens: Int = 0
+    override var tokensCounter: TokensCounter = TokensCounter()
     private lateinit var model: String
     private var client: OpenAI
 
@@ -156,8 +156,8 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
         if (usage != null) {
 
             // Note: Input tokens need to set, as in each response the whole history is being counted as "input tokens"
-            this.nrInputTokens = usage.promptTokens!!
-            this.nrOutputTokens += usage.completionTokens!!
+            YateConsole.debug("Prompts used for model execution: Input=${usage.promptTokens} Output=${usage.completionTokens} Total=${usage.totalTokens}")
+            this.tokensCounter.add(usage.promptTokens ?: 0, usage.completionTokens ?: 0, usage.totalTokens ?: 0)
         }
     }
 }

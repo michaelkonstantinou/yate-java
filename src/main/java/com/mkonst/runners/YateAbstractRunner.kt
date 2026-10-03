@@ -4,6 +4,7 @@ import com.mkonst.analysis.ClassContainer
 import com.mkonst.config.ConfigYate
 import com.mkonst.config.ConfigYate.getInteger
 import com.mkonst.evaluation.RequestsCounter
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.helpers.*
 import com.mkonst.providers.ClassContainerProvider
 import com.mkonst.services.CoverageService
@@ -273,7 +274,7 @@ abstract class YateAbstractRunner(
 
     abstract fun resetNrRequests()
 
-    abstract fun getTotalTokens(): Int
+    abstract fun getTokensCounter(): TokensCounter
 
     abstract fun resetTokensCount()
 

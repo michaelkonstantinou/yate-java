@@ -6,6 +6,7 @@ import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.RequestsCounter
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaExecution
@@ -193,7 +194,7 @@ open class YateJavaRunner(
         yateCoverageEnhancer.resetNrRequests()
     }
 
-    override fun getTotalTokens(): Int {
+    override fun getTokensCounter(): TokensCounter {
         return yateGenerator.getTotalTokens() +
                 yateTestFixer.getTotalTokens() +
                 yateOracleFixer.getTotalTokens() +

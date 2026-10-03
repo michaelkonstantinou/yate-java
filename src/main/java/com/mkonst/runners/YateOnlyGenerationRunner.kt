@@ -3,6 +3,7 @@ package com.mkonst.runners
 import com.mkonst.analysis.ClassContainer
 import com.mkonst.components.YateUnitGenerator
 import com.mkonst.evaluation.RequestsCounter
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.evaluation.ablation.SimpleUnitTestGenerator
 import com.mkonst.helpers.YateConsole
 import com.mkonst.types.MethodPosition
@@ -67,7 +68,7 @@ class YateOnlyGenerationRunner(repositoryPath: String,
         simpleTestGenerator.resetNrRequests()
     }
 
-    override fun getTotalTokens(): Int {
+    override fun getTokensCounter(): TokensCounter {
         return simpleTestGenerator.getTotalTokens()
     }
 

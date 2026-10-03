@@ -13,7 +13,7 @@ data class EvaluationDatasetRecord(
     var outputDir: String?,
     val modelName: String?,
     var generatedTests: Int,
-    var totalTokens: Int?
+    var totalTokens: TokensCounter
 ) {
     fun addGeneratedTests(value: Int) {
         this.generatedTests += value

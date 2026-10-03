@@ -8,6 +8,7 @@ import com.google.genai.types.GenerateContentConfig
 import com.google.genai.types.Part
 import com.google.genai.types.ThinkingConfig
 import com.mkonst.config.ConfigYate
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole
 import com.mkonst.interfaces.ChatModel
@@ -22,8 +23,7 @@ class ChatGeminiModel(private val modelName: String): ChatModel {
     override var nrRequests: Int = 0
 
     // TODO: UPDATE THE TOKEN COUNT IN EACH ITERATION
-    override var nrInputTokens: Int = 0
-    override var nrOutputTokens: Int = 0
+    override var tokensCounter: TokensCounter = TokensCounter()
     private val client: Client = Client.builder().apiKey(ConfigYate.getString("GOOGLE_API_KEY")).build()
     private var config: GenerateContentConfig.Builder
 

@@ -4,6 +4,7 @@ import com.mkonst.helpers.YateIO
 import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.helpers.YateJavaUtils
 import com.mkonst.types.DependencyTool
+import com.mkonst.types.NonCompilingCodeSnippets
 import com.mkonst.types.OracleError
 import com.mkonst.types.TestErrorLog
 import java.io.File
@@ -57,15 +58,16 @@ class ErrorService(private val repositoryPath: String) {
     /**
      * Runs the tests in the repository and returns a map with the non-passing tests for each test class
      */
-    fun findNonCompilingClassesRegex(dependencyTool: DependencyTool): Triple<Map<String, MutableSet<String>>, Map<String, MutableSet<String>>, Map<String, MutableSet<String>>> {
+    fun findNonCompilingClassesRegex(dependencyTool: DependencyTool): NonCompilingCodeSnippets {
         // Step 1: Run tests and get errors
         val errors = YateJavaExecution.runTestsForErrors(repositoryPath, dependencyTool, includeCompilingTests = false)
         if (errors == null) {
-            return Triple(emptyMap(), emptyMap(), emptyMap())
+            return NonCompilingCodeSnippets(emptyMap(), emptyMap(), emptyMap(), emptyMap())
         }
 
         val testsByTestClass = mutableMapOf<String, MutableSet<String>>()
         val importsByTestClass = mutableMapOf<String, MutableSet<String>>()
+        val invalidFieldDeclarationsByTestClass = mutableMapOf<String, MutableSet<String>>()
         val staticClassesByTestClass = mutableMapOf<String, MutableSet<String>>()
 
         // Step 1: Iterate errors and collect faulty lines per file
@@ -98,15 +100,24 @@ class ErrorService(private val repositoryPath: String) {
                 }
 
                 // Get invalid import statements
-                val invalidImports = YateJavaUtils.findImportsFromLineNumbers(File(filename), errorLines)
+                val file = File(filename)
+                val contentLines = YateIO.readFile(file.path).lines()
+                val invalidImports = YateJavaUtils.findImportsFromLineNumbers(errorLines, contentLines)
                 if (invalidImports.isNotEmpty()) {
                     val imports = importsByTestClass.getOrPut(filename) { mutableSetOf() }
                     imports.addAll(invalidImports)
                 }
+
+                // Get invalid import statements
+                val invalidFieldDeclarations = YateJavaUtils.findFieldDeclarationsFromLineNumbers(file, errorLines, contentLines)
+                if (invalidFieldDeclarations.isNotEmpty()) {
+                    val invalidDeclarations = invalidFieldDeclarationsByTestClass.getOrPut(filename) { mutableSetOf() }
+                    invalidDeclarations.addAll(invalidFieldDeclarations)
+                }
             }
         }
 
-        return Triple(testsByTestClass, importsByTestClass, staticClassesByTestClass)
+        return NonCompilingCodeSnippets(testsByTestClass, importsByTestClass, staticClassesByTestClass, invalidFieldDeclarationsByTestClass)
     }
 
     /**
@@ -237,7 +248,8 @@ class ErrorService(private val repositoryPath: String) {
                 }
 
                 // Get invalid import statements
-                val invalidImports = YateJavaUtils.findImportsFromLineNumbers(File(filename), errorLines)
+                val contentLines = YateIO.readFile(File(filename).path).lines()
+                val invalidImports = YateJavaUtils.findImportsFromLineNumbers(errorLines, contentLines)
                 if (invalidImports.isNotEmpty()) {
                     val imports = importsByTestClass.getOrPut(filename) { mutableSetOf() }
                     imports.addAll(invalidImports)

@@ -7,6 +7,8 @@ object YateStats {
     private var timeStarts: MutableMap<String, Long> = mutableMapOf()
     private var timeStats: MutableMap<String, Long> = mutableMapOf()
     private var counts: MutableMap<String, Int> = mutableMapOf()
+    private var suggestedImports: MutableSet<String> = mutableSetOf()
+    private var removedPackageImports: MutableSet<String> = mutableSetOf()
 
     /**
      * Saves the current time stamp in milliseconds for the provided key
@@ -62,6 +64,14 @@ object YateStats {
         this.counts[key] = value
     }
 
+    fun addSuggestedImports(imports: List<String>) {
+        this.suggestedImports.addAll(imports)
+    }
+
+    fun addRemovedPackageImports(imports: List<String>) {
+        this.removedPackageImports.addAll(imports)
+    }
+
     fun save(outputFilepath: String = "yate_stats.txt") {
         YateIO.writeFile(outputFilepath, this.toString())
     }
@@ -76,6 +86,9 @@ object YateStats {
             content.appendLine("${count.key}: ${count.value}")
         }
 
+        content.appendLine("Suggested imports: ${this.suggestedImports.joinToString(",")}")
+        content.appendLine("Removed imports (package): ${this.removedPackageImports.joinToString(",")}")
+
         return content.toString()
     }
 
@@ -86,5 +99,7 @@ object YateStats {
         this.timeStats = mutableMapOf()
         this.timeStarts = mutableMapOf()
         this.counts = mutableMapOf()
+        this.suggestedImports = mutableSetOf()
+        this.removedPackageImports = mutableSetOf()
     }
 }

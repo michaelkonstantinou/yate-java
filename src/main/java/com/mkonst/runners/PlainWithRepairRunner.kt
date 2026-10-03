@@ -6,10 +6,12 @@ import com.mkonst.analysis.java.JavaImportsAnalyzer
 import com.mkonst.components.*
 import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.RequestsCounter
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.evaluation.YateStats
+import com.mkonst.evaluation.ablation.RepairAblationOptions
 import com.mkonst.evaluation.ablation.SimpleUnitTestGenerator
+import com.mkonst.evaluation.ablation.SimulatedUnitTestGenerator
 import com.mkonst.helpers.YateConsole
-import com.mkonst.helpers.YateJavaExecution
 import com.mkonst.types.MethodPosition
 import com.mkonst.types.ProgramLangType
 import com.mkonst.types.TestLevel
@@ -19,9 +21,11 @@ open class PlainWithRepairRunner(
     repositoryPath: String,
     private val includeOracleFixing: Boolean = true,
     outputDirectory: String? = null,
-    modelName: String? = null
+    modelName: String? = null,
+    private val ablationOptions: RepairAblationOptions = RepairAblationOptions(),
+    private val inputDirectory: String? = null
 ): YateAbstractRunner(repositoryPath = repositoryPath, lang = ProgramLangType.JAVA, outputDirectory = outputDirectory) {
-    private val yateGenerator: YateUnitGenerator = SimpleUnitTestGenerator(modelName, lang)
+    private val yateGenerator: YateUnitGenerator = if (inputDirectory === null) SimpleUnitTestGenerator(modelName, lang) else SimulatedUnitTestGenerator(modelName, inputDirectory, lang)
     private var yateTestFixer: YateUnitTestFixer = YateUnitTestFixer(repositoryPath, packageName, dependencyTool, modelName)
     private var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
     private val importsAnalyzer: JavaImportsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
@@ -64,6 +68,24 @@ open class PlainWithRepairRunner(
             return response
         }
 
+        if (!ablationOptions.fixOracleErrorsWithYate) {
+            // Make 5 iterations to fix oracles using the LLM
+            var hadErrors: Boolean = true
+            for (i: Int in 1..5) {
+                YateConsole.debug("Fixing non-passing oracles using LLM #$i")
+
+                // LLM-based fixing for the whole class
+                hadErrors = yateOracleFixer.fixClassErrorsUsingModel(response, true)
+                response.testClassContainer.toTestFile()
+
+                if (!hadErrors) {
+                    break
+                }
+            }
+
+            return response
+        }
+
         YateConsole.info("Fixing the oracles of non-passing tests")
 
         // Make sure that the current test file, is also the one that reflects the test container's content
@@ -78,6 +100,8 @@ open class PlainWithRepairRunner(
 
             var (errorsFixedFromLog, hadErrors) = yateOracleFixer.fixUsingOutput(response)
             YateConsole.info("$errorsFixedFromLog fixed using the output log and rules")
+            YateStats.addCount("times_rules_fixed_oracles_from_log", if (hadErrors) 1 else 0)
+            YateStats.addCount("fixed_oracles_rule_based", errorsFixedFromLog)
             response.testClassContainer.toTestFile()
 
             // LLM-based fixing for the whole class
@@ -85,6 +109,7 @@ open class PlainWithRepairRunner(
             for (j: Int in 1..ConfigYate.getInteger("MAX_FIX_ORACLE_USING_MODEL_ITERATIONS")) {
                 YateConsole.debug("Fixing oracles in class as whole, using model: #$j")
                 hadErrors = yateOracleFixer.fixClassErrorsUsingModel(response, j == 1)
+                YateStats.addCount("times_model_fixed_oracles", if (hadErrors) 1 else 0)
                 response.testClassContainer.toTestFile()
 
                 if (!hadErrors) {
@@ -102,6 +127,8 @@ open class PlainWithRepairRunner(
             val errorsFixedExceptions = errorsFixedAndConsole.first
             hadErrors = errorsFixedAndConsole.second
             YateConsole.info("$errorsFixedExceptions exception(or not) oracles fixed")
+            YateStats.addCount("times_exception_oracles_fixed", if (hadErrors) 1 else 0)
+            YateStats.addCount("fixed_exception_oracles", errorsFixedExceptions)
             response.testClassContainer.toTestFile()
             removeNonCompilingTests(response)
 
@@ -125,35 +152,45 @@ open class PlainWithRepairRunner(
     }
 
     override fun fixGeneratedTestClass(cutContainer: ClassContainer, response: YateResponse): YateResponse {
-        YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
-        appendSuggestImports(response)
-        val hasFoundInvalidImports = removeInvalidImports(response)
-        if (hasFoundInvalidImports) {
-            YateStats.addCount("starting_invalid_imports")
+        if (ablationOptions.fixImportStatements) {
+            YateConsole.debug("Looking for suggested import statements and removing possibly wrong ones")
+            appendSuggestImports(response)
+            val hasFoundInvalidImports = removeInvalidImports(response)
+            if (hasFoundInvalidImports) {
+                YateStats.addCount("starting_invalid_imports")
+            }
         }
 
         response.testClassContainer.toTestFile()
 
-        fixFromErrorLog(response)
-        if (isCompiling()) {
-            return response
-        }
+        if (ablationOptions.fixOtherCompilationErrors) {
+            fixFromErrorLog(response)
+            if (isCompiling()) {
+                return response
+            }
 
-        // Fix by checking external constructor invocations and wrong method usages
-        YateConsole.debug("Analyzing calls to other objects")
-        yateTestFixer.fixUsingExternalConstructors(cutContainer.getQualifiedName(), response)
-        response.testClassContainer.toTestFile()
+            // Fix by checking external constructor invocations and wrong method usages
+            YateConsole.debug("Analyzing calls to other objects")
+            yateTestFixer.fixUsingExternalConstructors(cutContainer.getQualifiedName(), response)
+            response.testClassContainer.toTestFile()
 
-        // Analyze code for wrong method/mock usages and fix accordingly
-        fixByFindingWrongInvocations(response)
-        if (isCompiling()) {
-            return response
-        }
+            // Analyze code for wrong method/mock usages and fix accordingly
+            fixByFindingWrongInvocations(response)
+            if (isCompiling()) {
+                return response
+            }
 
-        // Use the MCG to provide more content to the LLM regarding its usage
-        fixUsingExternalMethodContent(cutContainer, response)
-        if (isCompiling()) {
-            return response
+            // Use the MCG to provide more content to the LLM regarding its usage
+            fixUsingExternalMethodContent(cutContainer, response)
+            if (isCompiling()) {
+                return response
+            }
+        } else {
+            YateConsole.debug("Fixing compilation issues using only the LLM and without reference to the MCG")
+            fixFromErrorLog(response)
+            if (isCompiling()) {
+                return response
+            }
         }
 
         println("Code is still not compiling. Removing non-compiling tests")
@@ -181,7 +218,7 @@ open class PlainWithRepairRunner(
         yateOracleFixer.resetNrRequests()
     }
 
-    override fun getTotalTokens(): Int {
+    override fun getTokensCounter(): TokensCounter {
         return yateGenerator.getTotalTokens() +
                 yateTestFixer.getTotalTokens() +
                 yateOracleFixer.getTotalTokens()
@@ -218,6 +255,7 @@ open class PlainWithRepairRunner(
             YateConsole.debug("The following imports are invalid and are being removed: ${invalidImports.joinToString()}")
             response.testClassContainer.removeImports(invalidImports)
             YateStats.addCount("removed_invalid_package_imports", invalidImports.size)
+            YateStats.addRemovedPackageImports(invalidImports)
 
             return true
         }
@@ -234,6 +272,7 @@ open class PlainWithRepairRunner(
             val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
             response.testClassContainer.appendImports(suggestedImportStatements)
             YateStats.addCount("suggested_imports", suggestedImportStatements.size)
+            YateStats.addSuggestedImports(suggestedImportStatements)
         } catch (e: Exception) {
             YateConsole.debug("An error occurred when analyzing the import statements. Perhaps Spoon could not analyze the class")
             YateConsole.error(e.message ?: "")
@@ -244,12 +283,16 @@ open class PlainWithRepairRunner(
 
     private fun fixFromErrorLog(response: YateResponse): YateResponse {
         for (i in 1..ConfigYate.getInteger("MAX_FIX_ITERATIONS")) {
-            YateConsole.debug("Running tests and attempt to fix them using the error log")
+            YateConsole.debug("Running tests and attempt to fix them using the error log #$i")
             yateTestFixer.fixTestsFromErrorLog(response, i == 1)
 
             if (response.hasChanges) {
                 println("Test has changes. Saving results")
-                removeInvalidImports(response)
+
+                if (ablationOptions.fixImportStatements) {
+                    removeInvalidImports(response)
+                }
+
                 response.testClassContainer.toTestFile()
             } else {
                 return response

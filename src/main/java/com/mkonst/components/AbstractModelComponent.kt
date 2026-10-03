@@ -1,6 +1,7 @@
 package com.mkonst.components
 
 import com.mkonst.config.ConfigYate
+import com.mkonst.evaluation.TokensCounter
 import com.mkonst.interfaces.ChatModel
 import com.mkonst.models.ChatOpenAIModel
 import com.mkonst.models.ModelProvider
@@ -24,12 +25,11 @@ abstract class AbstractModelComponent(modelName: String? = null) {
         this.model.closeConnection()
     }
 
-    open fun getTotalTokens(): Int {
-        return model.nrInputTokens + model.nrOutputTokens
+    open fun getTotalTokens(): TokensCounter {
+        return model.tokensCounter
     }
 
     open fun resetTotalTokens() {
-        model.nrInputTokens = 0
-        model.nrOutputTokens = 0
+        model.tokensCounter.reset()
     }
 }
