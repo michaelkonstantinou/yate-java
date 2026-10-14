@@ -116,3 +116,30 @@ The following plugins have been tried, and we know that work
 </executions>
 </plugin>
 ```
+
+## Support for models across different providers
+
+In theory you can use almost any provider that supports the OpenAI SDK, or in case of llama or gemini we already provide a custom solution. 
+
+Now, to make it work, you need to understand the naming convention we follow:
+
+By default, everything will be redirected to openai. IF YOU NEED ANOTHER PROVIDER HERE IS HOW TO DO IT:
+
+Naming convention: providerName@model-name
+
+For instance: somenamehere@some-model/some-model-name
+This will look for the following keys in your .env file:
+- SOMENAMEHERE_API_KEY
+- SOMENAMEHERE_BASE_URL
+
+Examples:
+
+Using DeepInfra to use Llama3.3-70B
+
+The modelName should be: deepinfra@meta-llama/Llama-3.3-70B-Instruct-Turbo
+
+The `.env` file needs to contain the following fields:
+- DEEPINFRA_API_KEY
+- DEEPINFRA_BASE_URL
+
+Similarly you can do so for any provider. This has already been tested for mistral, deepseek, together.ai and deepinfra

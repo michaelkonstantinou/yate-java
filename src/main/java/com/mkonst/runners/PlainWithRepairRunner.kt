@@ -75,7 +75,7 @@ open class PlainWithRepairRunner(
                 YateConsole.debug("Fixing non-passing oracles using LLM #$i")
 
                 // LLM-based fixing for the whole class
-                hadErrors = yateOracleFixer.fixClassErrorsUsingModel(response, true)
+                hadErrors = yateOracleFixer.fixClassErrorsUsingModel(response, i == 1)
                 response.testClassContainer.toTestFile()
 
                 if (!hadErrors) {

@@ -26,14 +26,17 @@ class ErrorService(private val repositoryPath: String) {
             return emptyMap()
         }
 
-        val reNonPassingErrorLine = Regex("""^\[ERROR\]\s+([\w\d_]+)\.([\w\d_]+)""")
+        val reNonPassingErrorLine = Regex("""^\[ERROR\]\s+([\w\d_$]+)\.([\w\d_]+)""")
 
         // Step 2: Iterate errors and collect faulty lines per file
         for (errorLine in errors.lineSequence()) {
             val matchResult = reNonPassingErrorLine.find(errorLine)
 
             if (matchResult != null) {
-                val (testClass, testMethod) = matchResult.destructured
+                val (rawTestClass, testMethod) = matchResult.destructured
+
+                // In case of outerClass$innerClass type of message, get only the outer class
+                val testClass = rawTestClass.substringBefore('$')
                 val methods = testsByTestClass.getOrPut(testClass) { mutableSetOf() }
                 methods.add(testMethod)
             }

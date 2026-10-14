@@ -15,6 +15,7 @@ import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.TokensCounter
 import com.mkonst.evaluation.YateStats
 import com.mkonst.helpers.YateConsole
+import com.mkonst.helpers.YateIO
 import com.mkonst.interfaces.ChatModel
 import com.mkonst.types.CodeResponse
 import com.mkonst.types.exceptions.EmptyPromptsInRequestException
@@ -40,29 +41,11 @@ class ChatOpenAIModel(model: String? = null): ChatModel {
             )
             println(this.model)
         } else {
-            this.model = model
-            if (model.contains("deepseek")) {
-                this.client = OpenAI(
-                    token = ConfigYate.getString("DEEPSEEK_API_KEY"),
-                    host = OpenAIHost(ConfigYate.getString("DEEPSEEK_BASE_URL")),
-                    logging = LoggingConfig(LogLevel.None),
-                    timeout = Timeout(socket = 600.seconds),
-                )
-            } else if (model.contains("mistral") || model.contains("codestral")) {
-                this.client = OpenAI(
-                    token = ConfigYate.getString("MISTRAL_API_KEY"),
-                    host = OpenAIHost(ConfigYate.getString("MISTRAL_BASE_URL")),
-                    logging = LoggingConfig(LogLevel.None),
-                    timeout = Timeout(socket = 600.seconds),
-                )
-            } else {
-                this.client = OpenAI(
-                    token = ConfigYate.getString("GPT_API_KEY"),
-                    organization = ConfigYate.getString("GPT_ORGANIZATION"),
-                    logging = LoggingConfig(LogLevel.None),
-                    timeout = Timeout(socket = 600.seconds),
-                )
-            }
+            val (newModelName, clientToUse) = ModelClientProvider.get(model)
+            this.model = newModelName
+            this.client = clientToUse
+
+            YateConsole.info("Initialized a new client. Will use model: $newModelName")
         }
     }
 
