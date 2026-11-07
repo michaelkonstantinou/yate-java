@@ -30,6 +30,7 @@ open class PlainWithRepairRunner(
     private var yateOracleFixer: YateOracleFixer = YateOracleFixer(repositoryPath, dependencyTool, modelName)
     private val importsAnalyzer: JavaImportsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
     private val parser: JavaClassParser = JavaClassParser()
+    private val suggestedImports: MutableSet<String> = mutableSetOf()
 
     /**
      * Generates unit tests regarding a given class. Depending on the test-level, the method will generate tests
@@ -249,7 +250,7 @@ open class PlainWithRepairRunner(
         }
 
         // Filter out import statements that do not belong to the package (but follow the same prefix)
-        val invalidImports: MutableList<String> = importsAnalyzer.getInvalidPackageImports(response.testClassContainer.body.imports)
+        val invalidImports: MutableList<String> = importsAnalyzer.getInvalidPackageImports(response.testClassContainer.body.imports, this.suggestedImports)
 
         if (invalidImports.size > 0) {
             YateConsole.debug("The following imports are invalid and are being removed: ${invalidImports.joinToString()}")
@@ -270,6 +271,10 @@ open class PlainWithRepairRunner(
     private fun appendSuggestImports(response: YateResponse): YateResponse {
         try {
             val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
+
+            // Add suggested imports to a global so it's not accidentally removed by the removeInvalidImports
+            this.suggestedImports.addAll(suggestedImportStatements)
+
             response.testClassContainer.appendImports(suggestedImportStatements)
             YateStats.addCount("suggested_imports", suggestedImportStatements.size)
             YateStats.addSuggestedImports(suggestedImportStatements)

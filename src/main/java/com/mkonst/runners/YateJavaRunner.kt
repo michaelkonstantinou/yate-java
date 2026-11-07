@@ -27,6 +27,7 @@ open class YateJavaRunner(
     protected val yateCoverageEnhancer: YateCoverageEnhancer = YateCoverageEnhancer(repositoryPath, modelName)
     private val importsAnalyzer: JavaImportsAnalyzer = JavaImportsAnalyzer(repositoryPath, packageName)
     private val parser: JavaClassParser = JavaClassParser()
+    private val suggestedImports: MutableSet<String> = mutableSetOf()
 
     /**
      * Generates unit tests regarding a given class. Depending on the test-level, the method will generate tests
@@ -226,7 +227,7 @@ open class YateJavaRunner(
         }
 
         // Filter out import statements that do not belong to the package (but follow the same prefix)
-        val invalidImports: MutableList<String> = importsAnalyzer.getInvalidPackageImports(response.testClassContainer.body.imports)
+        val invalidImports: MutableList<String> = importsAnalyzer.getInvalidPackageImports(response.testClassContainer.body.imports, this.suggestedImports)
 
         if (invalidImports.size > 0) {
             YateConsole.debug("The following imports are invalid and are being removed: ${invalidImports.joinToString()}")
@@ -245,8 +246,13 @@ open class YateJavaRunner(
     private fun appendSuggestImports(response: YateResponse): YateResponse {
         try {
             val suggestedImportStatements = importsAnalyzer.getSuggestedImports(response.testClassContainer.getQualifiedName())
+
+            // Add suggested imports to a global so it's not accidentally removed by the removeInvalidImports
+            this.suggestedImports.addAll(suggestedImportStatements)
+
             response.testClassContainer.appendImports(suggestedImportStatements)
             YateStats.addCount("suggested_imports", suggestedImportStatements.size)
+            YateStats.addSuggestedImports(suggestedImportStatements)
         } catch (e: Exception) {
             YateConsole.debug("An error occurred when analyzing the import statements. Perhaps Spoon could not analyze the class")
             YateConsole.error(e.message ?: "")

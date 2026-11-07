@@ -1,6 +1,8 @@
 package com.mkonst.analysis.java
 
+import com.mkonst.config.ConfigYate
 import com.mkonst.evaluation.YateStats
+import com.mkonst.helpers.YateConsole
 import com.mkonst.helpers.YateJavaUtils.classPackageExists
 import spoon.Launcher
 import spoon.reflect.declaration.CtClass
@@ -17,12 +19,18 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
      * in order for the method to work
      */
     fun getInvalidPackageImports(
-        currentImports: List<String>
+        currentImports: List<String>,
+        importsToExclude: Collection<String>,
     ): MutableList<String> {
         YateStats.startTime("debugging_overhead")
         val invalidPackageImports: MutableList<String> = ArrayList()
 
         for (importStatement in currentImports) {
+            if (importStatement in importsToExclude) {
+                YateConsole.debug("Import statement was excluded from invalid package imports removal: $importStatement")
+                continue
+            }
+
             val cleanPackage = importStatement
                 .replace("import ", "")
                 .replace("static", "")
@@ -91,7 +99,13 @@ class JavaImportsAnalyzer(val repositoryPath: String, val packageName: String) {
         val classMethods: MutableMap<String, MutableSet<String>> = HashMap()
 
         val launcher = Launcher()
-        launcher.addInputResource(repositoryPath)
+        if (ConfigYate.getBoolean("SEARCH_IMPORTS_ONLY_INSIDE_SOURCE")) {
+            launcher.addInputResource(repositoryPath + "src/main")
+        } else {
+            YateConsole.info("Looking for relevant import statements in the whole repository directory")
+            launcher.addInputResource(repositoryPath)
+        }
+
 
         // Enable Spoon to analyze without full classpath
         launcher.environment.noClasspath = true

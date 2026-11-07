@@ -198,6 +198,11 @@ class JavaClassParser: CodeClassParserInterface {
                 continue
             }
 
+            // Skip if import statemetns ends in [];
+            if (trimmedWithoutComments.endsWith("[];")) {
+                continue
+            }
+
             // Skip if "import" is present but nothing follows, or it's malformed
             if (trimmed == "import"
                 || trimmed == "import;"
